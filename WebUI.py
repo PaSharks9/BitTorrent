@@ -1,5 +1,5 @@
 import socket
-from flask import Flask
+from flask import Flask, render_template
 
 # Funzione che consente di avere una ricezione di esattamente n_bytes
 def recvExact(miaSocket, n_bytes):
@@ -44,6 +44,16 @@ app = Flask(__name__)
 def homepage():
     s.sendall("HOME".encode('utf-8'))
     data = recvUntil(s,"*").decode('utf-8')
+    return data
+
+@app.route("/search", methods=['GET'])  # viene chiesta la pagina dove effettuare la ricerca di un file
+def searchEmpty():
+    return render_template('search.html')
+
+@app.route("/search", methods=['GET'])  # ci viene inviato il form con la stringa da ricercare
+def searchPerform():
+    searchKey = request.form['searchkey']
+    data = "NIY!"
     return data
 
 def kill():
