@@ -722,3 +722,4 @@ MigrationBackup/
 .ionide/
 
 # End of https://www.toptal.com/developers/gitignore/api/python,pycharm,visualstudio,visualstudiocode,linux,windows,venv,flask
+/Quadro_orario.pdf

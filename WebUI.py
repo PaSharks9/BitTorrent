@@ -75,7 +75,7 @@ def search():
             for index in range(0, int((len(risultati)-1)/4)):
                 data = data + '<tr>'
 
-                data = data + '<td style="text-align:center"><a href="/download?md5=' + risultati[4*index] + '">' + risultati[4*index] + '</a></td>'
+                data = data + '<td style="text-align:center"><a href="/download?md5=' + risultati[4*index] + '&name=' + risultati[4*index +1] + '&size=' + risultati[4*index +2] + '&part=' + risultati[4*index +3] + '">' + risultati[4*index] + '</a></td>'
                 data = data + '<td style="text-align:center">' + risultati[4*index +1] + '</td>'
                 data = data + '<td style="text-align:center">' + risultati[4*index +2] + '</td>'
                 data = data + '<td style="text-align:center">' + risultati[4*index +3] + '</td>'
@@ -86,15 +86,14 @@ def search():
 
 @app.route("/download", methods=['GET'])
 def download():
-    md5= request.args.get('md5')
-    data = "DOWN" + md5
+    data = "DOWN" + request.args.get('md5') + ',' + request.args.get('name') + ',' + str(request.args.get('size')) + ',' + str(request.args.get('part')) + "%"
     
     s.sendall(data.encode('utf-8'))
 
     data = recvUntil(s,"%").decode('utf-8')
 
-    if (data == "OK"):  data = "Download avviato correttamente."
-    if (data == "KO"):  data = "Si e' verificato un errore nell'avvio del download."
+    if(data == "OK"):   data = "Download eseguito correttamente."
+    else:               data = "Si è verificato un problema durante il download."
     data = data + "<br><br><a href='/'>Torna alla homepage</a>"
     
     return data

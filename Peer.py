@@ -109,10 +109,12 @@ class webTalker(threading.Thread):
                         data = data + str(risultati[index][3]) + ','
            
             elif(data == "DOWN"):
-                md5 = recvExact(self.webConnection, 32) # Leggo l'md5 del file da scaricare
-                #AVVIO IL DOWNLOAD
-                data = "OK" # DEBUG
-                            
+                data = recvUntil(self.webConnection,'%')
+                data = data.decode('utf-8')
+
+                result = data.split(',')
+                data = downloadFile(result, sid, sTracker, lockSocket)
+                           
             data = data + "%"   # Uso il simbolo % come terminatore del messaggio (dall'altra parte leggerò finché non lo trovo)            
             self.webConnection.sendall(data.encode('utf-8'))
 
@@ -452,6 +454,19 @@ class proxyThread(threading.Thread):
         self.enabled = False
 
 ############################################ FUNZIONI #############################################
+# Funzione che consente di avere una ricezione di esattamente n_bytes
+def recvUntil(miaSocket, pattern):
+    letto = b""    
+    while True:
+        temp = b""
+        temp = recvExact(miaSocket,len(pattern))
+
+        if (temp == pattern.encode('utf-8')):   # se ho letto il terminatore
+            break  # ho finito di leggere
+        else:
+            letto += temp
+    return letto
+
 def list2string(lista):
     stringa = ""
     try:
@@ -641,15 +656,15 @@ def downloadFile(result, Session_ID, sTracker, sLock):
 
     if(n_parts * part_size < file_size):    n_parts += 1
     
-    if(md5 in sharedDict):
-        while True:
-            scelta = input("[PEER] WARNING: You already own this file. Do you want to overwrite it? [y/n]")
-            if(scelta == 'n'):
-                return
-            elif(scelta == 'y'):
-                break
-            else:
-                print("Wrong input. Only 'y' or 'n'. Retry...")
+    #if(md5 in sharedDict):
+        #while True:
+        #    scelta = input("[PEER] WARNING: You already own this file. Do you want to overwrite it? [y/n]")
+        #    if(scelta == 'n'):
+        #        return
+        #    elif(scelta == 'y'):
+        #        break
+        #    else:
+        #        print("Wrong input. Only 'y' or 'n'. Retry...")
 
     completedLock = threading.Lock()
     completedMask = []
@@ -673,20 +688,22 @@ def downloadFile(result, Session_ID, sTracker, sLock):
     updater.start() 
     
     # Creo ed avvio il pool di downloader
-    try:
-        while True:
-            pool_size = int(input("[PEER] Insert the pool size:"))
-            if(pool_size > n_parts):    print("[PEER] Pool size must be <= " + str(n_parts))
-            else:                       break
-    except:
-        if(debug is True):  print("[PEER] WARNING: Not-integer inserted. I'll use the default value (5).")
-        pool_size = 5
-    
+    #try:
+        #while True:
+            #pool_size = int(input("[PEER] Insert the pool size:"))
+            #if(pool_size > n_parts):    print("[PEER] Pool size must be <= " + str(n_parts))
+            #else:                       break
+    #except:
+    #    if(debug is True):  print("[PEER] WARNING: Not-integer inserted. I'll use the default value (5).")
+    #    pool_size = 5
+
+    pool_size = min(10, n_parts)
+
     poolList = []
     for i in range(0, pool_size):
         poolList.append(poolWorker(completedLock, completedMask, sTracker, sLock, md5, i, file_name, Session_ID))
         poolList[i].start()
-    if(debug is True):  print("INFO: Pool correctly started.")
+    #if(debug is True):  print("INFO: Pool correctly started.")
     
     while True:
         if(len(partsList) == n_parts):  # posso procedere solo dopo che l'updater ha processato almeno una volta la partsList
@@ -778,7 +795,8 @@ def downloadFile(result, Session_ID, sTracker, sLock):
     dataFile.close()
 
     print("[PEER] Download successfully completed!")
-    return
+    stato = "OK"
+    return stato
 
 def explodeIpv4(address):
     ip_temp = address.split('.')
