@@ -94,10 +94,21 @@ class webTalker(threading.Thread):
                     presenti = tupla[3].count('1')
                     data = ("<BR>Md5=" + str(md5) + " Len_parts=" + str(tupla[1]).ljust(6,' ') + " Owned_parts=" + str(presenti) + " of " + str(tupla[2]) + "</BR>")
         
-            elif(data == "UPLD"):
-                data = "NOT_IMPLEMENTED_YET!"
-
-            data = data + "*"   # Uso il simbolo * come terminatore del messaggio (dall'altra parte leggerò finché non lo trovo)            
+            elif(data == "FIND"):
+                data = recvExact(self.webConnection, 20) # Leggo la chiave da ricercare (già formattata a 20 caratteri da WebUI)    
+                data = data.decode('utf-8')
+                
+                risultati = searchFile(sTracker, sid, lockSocket, data)
+                
+                # Converto la lista di risultati in formato CSV
+                data = ""
+                for index in range(0, len(risultati)):  
+                    data = data + risultati[index][0] + ','
+                    data = data + risultati[index][1] + ','
+                    data = data + risultati[index][2] + ','
+                    data = data + risultati[index][3] + ','
+                    
+            data = data + "%"   # Uso il simbolo % come terminatore del messaggio (dall'altra parte leggerò finché non lo trovo)            
             self.webConnection.sendall(data.encode('utf-8'))
 
         try:
@@ -993,16 +1004,12 @@ def partLocked(md5, part_id):
     if(locked[part_id] == 0):   return False
     else:                       return True
 
-def searchFile(sock, Session_ID, sLock):
-    while True:
-        research = input("Insert the keyword to search: ")
-        if(research != ""): break
-
-    if len(research) < 20:  # se "research" è più corta di 20 caratteri
-        to_be_added = " " * (20 - len(research)) # creo una stringa con gli spazi necessari per giungere a 20 caratteri
-        research = research + to_be_added  # concateno gli spazi necessari alla chiave di ricerca inserita
-    if len(research) > 20:  # se "fileDescription" ha più di 20 caratteri
-        research = research[0:20]  # prendo i primi 20 caratteri
+def searchFile(sock, Session_ID, sLock, research):
+    #if len(research) < 20:  # se "research" è più corta di 20 caratteri
+    #    to_be_added = " " * (20 - len(research)) # creo una stringa con gli spazi necessari per giungere a 20 caratteri
+    #    research = research + to_be_added  # concateno gli spazi necessari alla chiave di ricerca inserita
+    #if len(research) > 20:  # se "fileDescription" ha più di 20 caratteri
+    #    research = research[0:20]  # prendo i primi 20 caratteri
 
     msg = "LOOK" + Session_ID + research
 
@@ -1010,7 +1017,7 @@ def searchFile(sock, Session_ID, sLock):
     print("[PEER] <" + msg)
     sock.sendall(msg.encode('utf-8'))
 
-        # "ALOO".#idm5[3B].{File_md5_i[32B].File_name_i[100B].len_file[10B].len_part[6B]}
+    # "ALOO".#idm5[3B].{File_md5_i[32B].File_name_i[100B].len_file[10B].len_part[6B]}
     data = recvExact(sock, 7).decode('utf-8')  # ricevo "ALOO.#idm5"
     if(data[0:4] != "ALOO"):
         print("[PEER] ERROR: Received " + str(data[0:4]) + " when expecting an ALOO. Abort.")
@@ -1044,35 +1051,30 @@ def searchFile(sock, Session_ID, sLock):
         resultList.append((file_md5, file_name, len_file, len_part))
 
     sLock.release()
-
-    for index in range(0, len(resultList)):
-        print("\nFile N: " + str(index))
-        print("\tMd5: " + str(resultList[index][0]))
-        print("\tDescription: " + str(resultList[index][1]))
-        print("\tFile size: " + str(resultList[index][2]))
-        print("\tPart_size: " + str(resultList[index][3]))
     
-    while True:
-        choice = str(input("\nDo you want to download one of this files? [y/n]:"))
-        if choice == "n":
-            return  # torno al menu principale in quanto non ho altro da fare quì
-        if choice == "y":
-            break  # procedo con il download
+    return resultList
 
-    while True:
-        try:
-            print("\nInsert the index of the file that you want to download [0-" + str(idm5 - 1) + "]: ")
-            index_file = int(input())
-        except:
-            print("Please insert an integer value. Retry...")
-            continue
+    #while True:
+    #    choice = str(input("\nDo you want to download one of this files? [y/n]:"))
+    #    if choice == "n":
+    #        return  # torno al menu principale in quanto non ho altro da fare quì
+    #    if choice == "y":
+    #        break  # procedo con il download
 
-        if index_file in range(0, idm5):
-            break
-        else:
-            print("\nThe choice must be in range[0," + str(idm5 - 1) + "]. Retry...")
+    #while True:
+    #    try:
+    #        print("\nInsert the index of the file that you want to download [0-" + str(idm5 - 1) + "]: ")
+    #        index_file = int(input())
+    #    except:
+    #        print("Please insert an integer value. Retry...")
+    #        continue
+
+    #    if index_file in range(0, idm5):
+    #        break
+    #    else:
+    #        print("\nThe choice must be in range[0," + str(idm5 - 1) + "]. Retry...")
             
-    downloadFile(resultList[index_file], Session_ID, sock, sLock)
+    #downloadFile(resultList[index_file], Session_ID, sock, sLock)
 
 def randomConnection(HOST, PORT):
     ips = HOST.split("|")  # in questo modo ips[0] conterrà ipv4_directory, ips[1] conterrà ipv6_directory
@@ -1414,7 +1416,10 @@ while (esci == False):
 
     # Search_files
     elif((scelta == 3)and(logged is True)):
-        searchFile(sTracker, sid, lockSocket)
+        while True:
+            research = input("Insert the keyword to search: ")
+            if(research != ""): break
+        searchFile(sTracker, sid, lockSocket, research)
         continue
 
     # Logout

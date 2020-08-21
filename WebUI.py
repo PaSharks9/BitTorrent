@@ -1,5 +1,5 @@
 import socket
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 
 # Funzione che consente di avere una ricezione di esattamente n_bytes
 def recvExact(miaSocket, n_bytes):
@@ -43,17 +43,49 @@ app = Flask(__name__)
 @app.route("/")
 def homepage():
     s.sendall("HOME".encode('utf-8'))
-    data = recvUntil(s,"*").decode('utf-8')
+    data = recvUntil(s,"%").decode('utf-8')
     return data
 
-@app.route("/search", methods=['GET'])  # viene chiesta la pagina dove effettuare la ricerca di un file
-def searchEmpty():
-    return render_template('search.html')
+@app.route("/search", methods=['GET','POST'])
+def search():
+    if request.method == "GET":
+        return render_template('search.html')
+    
+    if request.method == "POST":
+        searchKey = "FIND"
+        if len(request.form['searchkey']) < 20:  # se "research" è più corta di 20 caratteri
+            searchKey = searchKey + request.form['searchkey'] + ' '*len(request.form['searchkey']) 
+        else:  
+            temp = request.form['searchkey']
+            searchKey = searchKey + temp[0:20]  # prendo i primi 20 caratteri della chiave
 
-@app.route("/search", methods=['GET'])  # ci viene inviato il form con la stringa da ricercare
-def searchPerform():
-    searchKey = request.form['searchkey']
-    data = "NIY!"
+        s.sendall(searchKey.encode('utf-8'))
+
+        temp = recvUntil(s,"%").decode('utf-8')
+        risultati = temp.split(',') # da formato CSV restituisce una lista
+
+        data = '<table style="width:100%"><tr><th>Md5 file</th><th>Descrizione</th><th>Dimensione file</th><th>Dimensione parti</th></tr>'
+        for index in range(0, len(risultati)/4):
+            data = data + '<tr>'
+            data = data + '<td>' + risultati[4*index] + '</td>'
+            data = data + '<td>' + risultati[4*index +1] + '</td>'
+            data = data + '<td>' + risultati[4*index +2] + '</td>'
+            data = data + '<td>' + risultati[4*index +3] + '</td>'
+            data = data + '</tr>'
+        data = data + '</table>'
+               
+        return data
+
+@app.route("/download", methods=['POST'])
+def download():
+    md5= "Qualcosa"
+    data = "DOWN" + md5
+    s.sendall(data.encode('utf-8'))
+    
+    data = recvUntil(s,"%").decode('utf-8')
+    if (data == "OK"):  data = "Download avviato correttamente. TORNA ALLA HOMEPAGE"
+    if (data == "KO"):  data = "Si e' verificato un errore nell'avvio del download. TORNA ALLA HOMEPAGE"
+
     return data
 
 def kill():
