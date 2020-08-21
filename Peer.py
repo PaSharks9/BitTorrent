@@ -97,17 +97,22 @@ class webTalker(threading.Thread):
             elif(data == "FIND"):
                 data = recvExact(self.webConnection, 20) # Leggo la chiave da ricercare (già formattata a 20 caratteri da WebUI)    
                 data = data.decode('utf-8')
-                
+                print("RICEVUTO DAL WEB:" + data)
                 risultati = searchFile(sTracker, sid, lockSocket, data)
                 
-                # Converto la lista di risultati in formato CSV
                 data = ""
-                for index in range(0, len(risultati)):  
-                    data = data + risultati[index][0] + ','
-                    data = data + risultati[index][1] + ','
-                    data = data + risultati[index][2] + ','
-                    data = data + risultati[index][3] + ','
-                    
+                if risultati is not None:   # Se ci sono risultati converto la lista in formato CSV
+                    for index in range(0, len(risultati)):  
+                        data = data + risultati[index][0] + ','
+                        data = data + risultati[index][1] + ','
+                        data = data + str(risultati[index][2]) + ','
+                        data = data + str(risultati[index][3]) + ','
+           
+            elif(data == "DOWN"):
+                md5 = recvExact(self.webConnection, 32) # Leggo l'md5 del file da scaricare
+                #AVVIO IL DOWNLOAD
+                data = "OK" # DEBUG
+                            
             data = data + "%"   # Uso il simbolo % come terminatore del messaggio (dall'altra parte leggerò finché non lo trovo)            
             self.webConnection.sendall(data.encode('utf-8'))
 
