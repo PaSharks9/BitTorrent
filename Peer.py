@@ -107,7 +107,7 @@ class webTalker(threading.Thread):
                         data = data + risultati[index][1] + ','
                         data = data + str(risultati[index][2]) + ','
                         data = data + str(risultati[index][3]) + ','
-           
+
             elif(data == "DOWN"):
                 data = recvUntil(self.webConnection,'%')
                 data = data.decode('utf-8')

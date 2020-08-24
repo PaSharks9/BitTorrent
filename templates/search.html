@@ -1,58 +1,61 @@
-{% extends "homepage.html" %}
-
+{% extends "interfaceHomepage.html" %}
+<!-- Navbar -->
 {% block navbar %}
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-      <a class="navbar-brand" href="#" style="color: #347235">BitTorrent</a>
-      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarNavDropdown">
-        <ul class="navbar-nav">
-          <li class="nav-item">
-            <a class="nav-link" href="/">Home</a>
-          </li>
-          <li class="nav-item active">
-            <a class="nav-link" href="/search">Search <span class="sr-only">(current)</span></a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#">Downloaded</a>
-          </li>
-          <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              Dropdown link
-            </a>
-            <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-              <a class="dropdown-item" href="#">Action</a>
-              <a class="dropdown-item" href="#">Another action</a>
-              <a class="dropdown-item" href="#">Something else here</a>
-            </div>
-          </li>
-        </ul>
-      </div>
-    </nav>
+  <li class="nav-item">
+    <a class="nav-link" href="/">Home</a>
+  </li>
+  <li class="nav-item active">
+    <a class="nav-link" href="/search">Search</a>
+  </li>
+  <li class="nav-item">
+      <a class="nav-link" href="/download">Download</a>
+  </li>
+  <li class="nav-item">
+      <a class="nav-link" href="/add">Add File</a>
+  </li>
 {% endblock %}
 
-<!-- Search Form -->
+
+<!-- Content -->
 {% block content %}
-    <div class="container">
-<<<<<<< HEAD
-        <form role="form" method='POST' action='/search'>
-          <div class="form-group">
-            <label for="exampleInputEmail1">Cerca un torrent</label>
-            <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp">
-            <small id="emailHelp" class="form-text text-muted">We'll never let them know who you are.</small>
-          </div>
-          <button type="submit" class="btn btn-primary">Cerca</button>
-=======
-        <h1>Cerca un torrent</h1>
-        <form role="form" method='POST' action="/search">
-            <div class="form-group">
-                <input type="text" name="searchkey" id="searchkey" placeholder="Testo da cercare...">
-            </div>
-            <button type="submit">Cerca!</button>
->>>>>>> master
-        </form>
-        <br>
-    </div>
-{% endblock %}
+<div  style="text-align: center;">
+   <h1>Search File</h1>
+</div>
+<form class="form-inline" style="margin-top: 50px">
+  <div class="form-group mx-sm-3 mb-2">
+    <label for="filename"> Inserire il File che si vuole cercare: </label> <br>
+    <input type="text" class="form-control" id="filename" placeholder="Filename" style="margin-left: 20px">
+  </div>
+  <button type="submit" class="btn btn-primary mb-2">Cerca!</button>
+</form>
+<div style="margin-top: 50px; text-align: center; ">
+  <label for="downloadedFileTable"> <h2 style="color: red">File condivisi nel Sistema </h2> </label>
+  <table id="downloadedFileTable"style="width:100%">
+    <tr>
+        <th>Md5 file</th>
+        <th>Descrizione</th>
+        <th>Dimensione file</th>
+        <th>Dimensione parti</th>
+    </tr>
+      {% if data is not none %}
+        {% for element in data %}
+        <tr>
+          <td>{{ data[ loop.index0 * 4 + 1  ] }}</td>
+          <td>{{ data[ loop.index0 * 4 + 2  ] }}</td>
+          <td>{{ data[ loop.index0 * 4 + 3  ] }}</td>
+          <td></td>
+        </tr>
+        {% endfor %}
+      {% else %}
+        <p> Il file cercato non è al momento condiviso da nessun peer!</p>
+        <tr>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+      {% endif %}
+  </table>
+</div>
 
+{% endblock %}
