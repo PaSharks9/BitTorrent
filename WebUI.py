@@ -41,6 +41,11 @@ except:
 
 app = Flask(__name__)
 
+@app.route("/login")
+def login():
+    s.sendall("LOGI".encode('utf-8'))
+    data = recvUntil(s,"%").decode('utf-8')
+
 @app.route("/")
 def homepage():
     s.sendall("HOME".encode('utf-8'))

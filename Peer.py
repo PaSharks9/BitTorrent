@@ -87,7 +87,21 @@ class webTalker(threading.Thread):
             data = recvExact(self.webConnection, 4) # Ho assunto che i comandi inviati dall'interfaccia web siano lunghi 4 bytes
             data = data.decode('utf-8')
             
-            if(data == "HOME"):
+            if(data == "LOGI"):
+                if(sTracker == None):
+                    tracker_ips = str(config["tracker_ipv4"]) + '|' + str(config["tracker_ipv6"])
+                    sTracker = randomConnection(tracker_ips, int(config["tracker_port"]))
+
+                if(sTracker != None):
+                    sid = login(sTracker, lockSocket)
+                    if(sid != "0000000000000000"):
+                        logged = True
+                        peerProxy.enable()
+                        data = "Successfully logged, your session_id is: " + str(sid)
+                else:
+                    data = "Cannot create a connection with the tracker. Please check parameters."
+                  
+            elif(data == "HOME"):
                 data = ""
 
                 for md5, tupla in sharedDict.items():
