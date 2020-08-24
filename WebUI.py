@@ -48,16 +48,9 @@ def setup():
         data = recvUntil(s,"%").decode('utf-8')
         
         if(data == ""):
-            return render_template('setup.html')
+            return render_template('setup.html', ipv4peer="", ipv6peer="", portpeer="", ipv4tracker="", ipv6tracker="", porttracker="")
         else:   # se peer.py ha letto dei parametri dal file di configurazione allora li uso per pre-compilare i campi da inserire
             lista = data.split(',')
-            peer_ipv4       = lista[0]
-            peer_ipv6       = lista[1]
-            peer_port       = lista[2]
-            tracker_ipv4    = lista[3]
-            tracker_ipv6    = lista[4]
-            tracker_port    = lista[5]
-
             return render_template('setup.html', ipv4peer=lista[0], ipv6peer=lista[1], portpeer=lista[2], ipv4tracker=lista[3], ipv6tracker=lista[4], porttracker=lista[5])
     
     if request.method == "POST":
