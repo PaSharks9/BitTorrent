@@ -86,8 +86,69 @@ class webTalker(threading.Thread):
         while(self.killed is False):
             data = recvExact(self.webConnection, 4) # Ho assunto che i comandi inviati dall'interfaccia web siano lunghi 4 bytes
             data = data.decode('utf-8')
-            
-            if(data == "HOME"):
+
+            if(data == "GETP"):
+                config = loadConfiguration()
+                if(config is None):
+                    data = ""
+                else:
+                    data = ""
+                    data = data + str(config["peer_ipv4"]) + ','
+                    data = data + str(config["peer_ipv6"]) + ','
+                    data = data + str(config["peer_port"]) + ','
+                    data = data + str(config["tracker_ipv4"]) + ','
+                    data = data + str(config["tracker_ipv6"]) + ','
+                    data = data + str(config["tracker_port"])
+                    
+            elif(data == "SETP"):
+                data = recvUntil(self.webConnection, '%').decode('utf-8')
+                lista = data.split(',')
+                if(lista[0] != ""): config["peer_ipv4"] = str(implodeIpv4(lista[0]))
+                if(lista[1] != ""): config["peer_ipv6"] = str(implodeIpv6(lista[1]))
+                if(lista[2] != ""): config["peer_port"] = str(lista[2]).zfill(5)
+                if(lista[3] != ""): config["tracker_ipv4"] = str(implodeIpv4(lista[3]))
+                if(lista[4] != ""): config["tracker_ipv6"] = str(implodeIpv6(lista[4]))
+                if(lista[5] != ""): config["tracker_port"] = str(lista[5]).zfill(5)
+
+                # Sistemo IPS
+                config["peer_ips"] = str(explodeIpv4(config["peer_ipv4"])) + '|' + str(explodeIpv6(config["peer_ipv6"]))
+                config["tracker_ips"] = str(explodeIpv4(config["tracker_ipv4"])) + '|' + str(explodeIpv6(config["tracker_ipv6"]))
+
+                saveConfiguration(config)
+
+            elif(data == "UPLD"):
+                data = recvUntil(self.webConnection, '%').decode('utf-8')
+                lista = data.split(',')
+                data = addFile(sTracker, sid, lockSocket, sharedDict)
+
+            elif(data == "LOGI"):
+                if(sTracker == None):
+                    tracker_ips = str(config["tracker_ipv4"]) + '|' + str(config["tracker_ipv6"])
+                    sTracker = randomConnection(tracker_ips, int(config["tracker_port"]))
+
+                if(sTracker != None):
+                    sid = login(sTracker, lockSocket)
+                    if(sid != "0000000000000000"):
+                        logged = True
+                        peerProxy.enable()
+                    data = str(sid)
+                else:
+                    data = "ERR"
+
+            elif(data == "LOGO"):
+                esito = logout(sTracker, sid, lockSocket, peerProxy)
+                if(esito is True):  # Logout concesso dal tracker
+                    logged = False
+                    sTracker = None
+                    sid = ""
+                    lockSharedDict.acquire()
+                    sharedDict.clear()
+                    lockSharedDict.release()
+                    data = "OK"
+                else:
+                    data = "KO"
+
+            elif(data == "HOME"):
                 data = ""
 
                 for md5, tupla in sharedDict.items():
@@ -477,39 +538,37 @@ def list2string(lista):
         return ""
     return stringa
 
-def addFile(sock, Session_ID, sLock, sharedDict):
+def addFile(sock, Session_ID, sLock, sharedDict, file_name, file_description):
     while True:    
-        script_dir = os.path.dirname(__file__)  # questo è il path dove si trova questo script
-        rel_path = str(input("Insert the file name (extension included): "))
-        file_name = os.path.join(script_dir, rel_path)
+        #script_dir = os.path.dirname(__file__)  # questo è il path dove si trova questo script
+        #rel_path = str(input("Insert the file name (extension included): "))
+        #file_name = os.path.join(script_dir, rel_path)
         try:
             mioFile = open(file_name, "rb")
             break
         except:
-            print("File not found. Retry...")
+            return "FNF"    #FileNotFound
 
     fileData = mioFile.read()  # carico tutto il contenuto del file nella variabile "data"
     mioFile.close()
 
     fileMd5 = hashlib.md5(fileData + config["peer_ips"].encode('utf-8')).hexdigest()
-    print("[PEER] Md5: ", fileMd5)
 
     if(fileMd5 in sharedDict):
-        print("[PEER] WARNING: You're already sharing the selected file. Abort.")
-        return
+        return "FAS"    #FileAlreadyShared
+    else:
+        data = str(fileMd5)
 
-    fileDescription = str(input("Insert the file description (max 100chars): "))
+    #fileDescription = str(input("Insert the file description (max 100chars): "))
 
-    if len(fileDescription) < 100:  # se "fileDescription" è più corta di 100 caratteri
-        to_be_added = " " * (100 - len(fileDescription))  # creo una stringa con gli spazi necessari per arrivare a 100
-        fileDescription = fileDescription + to_be_added  # concateno gli spazi necessari alla descrizione originale
-    if len(fileDescription) > 100:  # se "fileDescription" ha almeno 100 caratteri
-        fileDescription = fileDescription[0:100]  # prendo i primi 100 caratteri
+    if len(file_description) < 100:  # se "fileDescription" è più corta di 100 caratteri
+        fileDescription = file_description.ljust(100)  # concateno gli spazi necessari alla descrizione originale
+    else:  # se "fileDescription" ha almeno 100 caratteri
+        fileDescription = file_description[0:100]  # prendo i primi 100 caratteri
     
     size = len(fileData)
     if(size > 9999999999):
-        print("[PEER] ERROR: Filesize must fit into 10B, so this file it's too big. Abort.")
-        return
+        return "FTB"    #Filesize must fit into 10B, so this file it's too big. Abort.")
 
     #parts_min = (size // 999999) + 1 # la dimensione di ciascuna parte dev'essere contenibile in 6B 
 
@@ -576,13 +635,13 @@ def addFile(sock, Session_ID, sLock, sharedDict):
 
     if(data[0:4] != "AADR"):
         print("[PEER] ERROR: I was expecting an AADR but i received", data[0:4], ". Abort.")
-        return
+        return "ERR"
 
     try:
         returned_parts = int(data[4:])
     except:
         print("[PEER] ERROR: Tracker returned a not-integer value for #part. Abort.")
-        return
+        return "ERR"
 
     #if(returned_parts != n_parts):  print("[PEER] WARNING: Tracker returned #part=" + str(returned_parts) + " but i was expecting n_parts=" + str(n_parts) + ". Please check.")
     if(returned_parts != nParts):  print("[PEER] WARNING: Tracker returned #part=" + str(returned_parts) + " but i was expecting nParts=" + str(nParts) + ". Please check.")
@@ -594,7 +653,8 @@ def addFile(sock, Session_ID, sLock, sharedDict):
     #sharedDict[fileMd5] = (file_name, part_size, returned_parts, mask)
     sharedDict[fileMd5] = (file_name, lenPart, returned_parts, mask)
     lockSharedDict.release()
-    return
+
+    return str(fileMd5) + ',' + str(returned_parts)
 
 def checkStatus(sid, md5, n_parts, sock, sLock):
     msg = "FCHU" + sid + md5
@@ -1216,159 +1276,30 @@ def setCompleted(md5, part_id): # restituisce False se qualcosa è andato storto
 
     return True
 
-#############################################  MAIN  #############################################
-config = loadConfiguration()
-
-if config is None:
-    config = {}
-    config["peer_ipv4"] = ""
-    config["peer_ipv6"] = ""
-    config["peer_port"] = -1
-    config["peer_ips"]  = ""
-    config["tracker_ipv4"] = ""
-    config["tracker_ipv6"] = ""
-    config["tracker_port"] = -1
-    config["tracker_ips"]  = ""
-
-# Inserimento PEER_IPv4
-while True:
-    if (config["peer_ipv4"] != ""):
-        print("Insert PEER's IPv4 [last=", config["peer_ipv4"], "]: ")
-        temp = input()
-    else:
-        temp = input("Insert PEER's IPv4: ")
-            
-    if ((temp == "")and(config["peer_ipv4"] != "")):
-        break
-
-    if (temp != ""):
-        config["peer_ipv4"] = str(implodeIpv4(temp))
-        break
-        
-# Inserimento PEER_IPv6
-while True:
-    if (config["peer_ipv6"] != ""):
-        print("Insert PEER's IPv6 [last=", config["peer_ipv6"], "]: ")
-        temp = input()
-    else:
-        temp = input("Insert PEER's IPv6: ")
-            
-    if ((temp == "")and(config["peer_ipv6"] != "")):
-        break
-        
-    if (temp != ""):
-        config["peer_ipv6"] = str(implodeIpv6(temp))
-        break
-
-# Sistemo IPS
-config["peer_ips"] = str(explodeIpv4(config["peer_ipv4"])) + '|' + str(explodeIpv6(config["peer_ipv6"]))
-
-# Inserimento PORT_PEER
-while True:
-        if (config["peer_port"] != -1):
-            print("Insert PEER's port [last=" + str(config["peer_port"]) + "]: ")
-            port = input()
-        else:
-            port = input("Insert PEER's port: ")
-
-        if ((port == "")and(config["peer_port"] != -1)):
-            port = int(config["peer_port"])
-            break
-                
-        if (port != ""):
-                port = int(port)
-                if ((port > 99999)or(port < 0)):
-                    print("WARNING: PEER's port must be in range [0,99999]. Retry...")
-                    continue
-                else:
-                    config["peer_port"] = str(port).zfill(5)
-                    break
-
-# Inserimento TRACKER_IPv4
-while True:
-    if (config["tracker_ipv4"] != ""):
-        print("Insert TRACKER's IPv4 [last=", config["tracker_ipv4"], "]: ")
-        temp = input()
-    else:
-        temp = input("Insert TRACKER's IPv4: ")
-            
-    if ((temp == "")and(config["tracker_ipv4"] != "")):
-        break
-
-    if (temp != ""):
-        config["tracker_ipv4"] = str(implodeIpv4(temp))
-        break
-        
-# Inserimento TRACKER_IPv6
-while True:
-    if (config["tracker_ipv6"] != ""):
-        print("Insert TRACKER's IPv6 [last=", config["tracker_ipv6"], "]: ")
-        temp = input()
-    else:
-        temp = input("Insert TRACKER's IPv6: ")
-            
-    if ((temp == "")and(config["tracker_ipv6"] != "")):
-        break
-        
-    if (temp != ""):
-        config["tracker_ipv6"] = str(implodeIpv6(temp))
-        break
-
-config["tracker_ips"] = str(explodeIpv4(config["tracker_ipv4"])) + '|' + str(explodeIpv6(config["tracker_ipv6"]))
-
-# Inserimento TRACKER_PORT
-while True:
-        if (config["tracker_port"] != -1):
-            print("Insert TRACKER's port [last=" + str(config["tracker_port"]) + "]: ")
-            port = input()
-        else:
-            port = input("Insert TRACKER's port: ")
-
-        if ((port == "")and(config["tracker_port"] != -1)):
-            port = int(config["tracker_port"])
-            break
-                
-        if (port != ""):
-                port = int(port)
-                if ((port > 99999)or(port < 0)):
-                    print("WARNING: TRACKER's port must be in range [0,99999]. Retry...")
-                    continue
-                else:
-                    config["tracker_port"] = str(port).zfill(5)
-                    break
-            
-# Salvataggio della configurazione attuale (nel file)
-scelta = input("Insert 'y' to save the configuration (any other key to skip):")
-if scelta == 'y':
-    if (saveConfiguration(config) == True):     print("Configuration saved successfully !")
-    else:                                       print("Error when trying to save the configuration!")
-
 # Istanzio il peerProxy
-while True:
-    try:
-        peerProxy = proxyThread(config["peer_port"])
-        peerProxy.start()
-        break
-    except:
-        print("ERROR: Exception when creating a peer_proxy thread to serve. I'll retry...")
-        getch()
+def istanziaPeerProxy():
+    while True:
+        try:
+            peerProxy = proxyThread(config["peer_port"])
+            peerProxy.start()
+            break
+        except:
+            print("ERROR: Exception when creating a peer_proxy thread to serve. I'll retry...")
+            getch()
 
+#############################################  MAIN  #############################################
 # Istanzio il thread che risponde all'interfaccia web
 while True:
-    needWI = input("Use the web interface? [y/n]")
-    if (needWI == "y"):
-        while True:
-            try:
-                talker = webTalker()
-                talker.start()
-                break
-            except:
-                print("ERROR: Exception when creating a webTalker thread to serve. I'll retry...")
-                getch()
-        break
-    elif(needWI == "n"):
-        break
-
+    while True:
+        try:
+            talker = webTalker()
+            talker.start()
+            break
+        except:
+            print("ERROR: Exception when creating a webTalker thread to serve. I'll retry...")
+            getch()
+    break
+    
 # Lancio il menu principale
 esci = False
 while (esci == False):

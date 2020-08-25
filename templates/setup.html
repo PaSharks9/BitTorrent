@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Setup parameters</title>
+</head>
+<body>
+    <div class="container">
+        <h1>Impostazione dei parametri</h1>
+        <form role="form" method='POST' action="/setup">
+            <div class="form-group">
+                <table>
+                    <th></th>
+                    <th>PEER</th>
+                    <th>TRACKER</th>
+                    <tr>
+                        <td>IPV4</td>
+                        <td><input type="text" name="peer_ipv4" id="peer_ipv4" value={{ ipv4peer }}></td>
+                        <td><input type="text" name="tracker_ipv4" id="tracker_ipv4" value={{ ipv4tracker }}></td>
+                    </tr>
+                    <tr>
+                        <td>IPV6</td>
+                        <td><input type="text" name="peer_ipv6" id="peer_ipv6" value={{ ipv6peer }}></td>
+                        <td><input type="text" name="tracker_ipv6" id="tracker_ipv6" value={{ ipv6tracker }}></td>
+                    </tr>
+                    <tr>
+                        <td>PORTA</td>
+                        <td><input type="text" name="peer_port" id="peer_port" value={{ portpeer }}></td>
+                        <td><input type="text" name="tracker_port" id="tracker_port" value={{ porttracker }}></td>
+                    </tr>
+                </table>
+            </div>
+            </br>
+            <button type="submit">Applica!</button>
+        </form>
+        <br>
+    </div>
+</body>
+</html>

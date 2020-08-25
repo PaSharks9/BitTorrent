@@ -1,5 +1,7 @@
 import socket
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect
+
+logged = False
 
 
 # Funzione che consente di avere una ricezione di esattamente n_bytes
@@ -52,8 +54,94 @@ def homepage():
     return render_template('home.html')
 
 
+@app.route("/upload", methods=['GET','POST'])
+def upload():
+    if(logged is False):
+        return redirect('/login')
+        
+    if request.method == "GET":
+        return render_template('upload.html', message='')
+
+    if request.method == "POST":
+        file = request.files['file']
+        
+        if(file.filename == ''):
+            return render_template('upload.html', message='Prego selezionare un file esistente!')
+        else:
+            data = "UPLD" + str(file.filename) + ',' + str(request.form['descrizione']) + '%'
+            s.sendall(data.encode('utf-8'))
+        
+            data = recvUntil(s,"%").decode('utf-8')
+             
+            if(data == "ERR"):
+                data = "Si e' verificato un errore durante il caricamento (tra peer e tracker).</br>Si prega di riprovare..."
+            elif(data == "FNF"):
+                return render_template('upload.html', message='Impossibile aprire il file!')
+            elif(data == "FAS"):
+                return render_template('upload.html', message='Si sta già condividendo il file selezionato!')
+            elif(data == "FTB"):
+                return render_template('upload.html', message="La dimesione in byte del file dev'essere di massimo 10 cifre!")
+            else:
+                lista = data.split(',')
+                data = "Caricamento avvenuto con successo.</br>MD5: " + lista[0] + "</br>Dimensione parti: " + lista[1] + "</br></br><a href='/'>Torna alla homepage</a>"
+            return data
+
+@app.route("/setup", methods=['GET','POST'])
+def setup():
+    if request.method == "GET":
+        s.sendall("GETP".encode('utf-8'))
+        data = recvUntil(s,"%").decode('utf-8')
+        
+        if(data == ""):
+            return render_template('setup.html', ipv4peer="", ipv6peer="", portpeer="", ipv4tracker="", ipv6tracker="", porttracker="")
+        else:   # se peer.py ha letto dei parametri dal file di configurazione allora li uso per pre-compilare i campi da inserire
+            lista = data.split(',')
+            return render_template('setup.html', ipv4peer=lista[0], ipv6peer=lista[1], portpeer=lista[2], ipv4tracker=lista[3], ipv6tracker=lista[4], porttracker=lista[5])
+    
+    if request.method == "POST":
+        data = "SETP"   + str(request.form['peer_ipv4']) + ','
+        data = data     + str(request.form['peer_ipv6']) + ','
+        data = data     + str(request.form['peer_port']) + ','
+        data = data     + str(request.form['tracker_ipv4']) + ','
+        data = data     + str(request.form['tracker_ipv6']) + ','
+        data = data     + str(request.form['tracker_port'])
+
+        s.sendall("SETP".encode('utf-8'))
+        data = recvUntil(s,"%").decode('utf-8')
+        return data
+
+@app.route("/login")
+def login():
+    s.sendall("LOGI".encode('utf-8'))
+    data = recvUntil(s,"%").decode('utf-8')
+
+    if(data == "0000000000000000"):
+        return "Login failed (tracker returned all-zeroes sid). Retry..."
+    elif(data == "ERR"):
+        return "Login failed due tracker's socket issues. Retry..."
+    else:
+        logged = True
+        return "Login success.</br>Sid: " + str(data)
+
+@app.route("/logout")
+def logout():
+    if(logged is False):
+        return redirect('/login')
+
+    s.sendall("LOGO".encode('utf-8'))
+    data = recvUntil(s,"%").decode('utf-8')
+
+    if(data == "OK"):
+        logged = False
+        return "Logout successfully performed."
+    else:
+        return "Logout failed."
+
 @app.route("/search", methods=['GET', 'POST'])
 def search():
+    if(logged is False):
+        return redirect('/login')
+
     if request.method == "GET":
         return render_template('search.html', data="")
 
@@ -74,6 +162,13 @@ def search():
 
 @app.route("/download", methods=['GET'])
 def download():
+
+    if(logged is False):
+        return redirect('/login')
+
+    data = "DOWN" + request.args.get('md5') + ',' + request.args.get('name') + ',' + str(request.args.get('size')) + ',' + str(request.args.get('part')) + "%"
+    
+    s.sendall(data.encode('utf-8'))
 
     # data = "DOWN" + request.args.get('md5') + ',' + request.args.get('name') + ',' + str(request.args.get('size')) + ',' + str(request.args.get('part')) + "%"
 

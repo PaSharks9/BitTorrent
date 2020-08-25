@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Share a file</title>
+</head>
+<body>
+    <div class="container">
+        <form role="form" method='POST' action="/upload">
+            <div class="form-group">
+                <p>Selezionare il file da condividere <input type="file" name="file"></p>
+                <p><input type="text" name="descrizione" id="descrizione" placeholder="Scrivi una descrizione"></p>
+            </div>
+            <button type="submit">Carica!</button>
+        </form>
+        <h4>{{ message }}</h4>
+        <br>
+    </div>
+</body>
+</html>
