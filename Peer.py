@@ -101,20 +101,25 @@ class webTalker(threading.Thread):
                     data = data + str(config["tracker_port"])
                     
             elif(data == "SETP"):
-                    data = recvUntil(self.webConnection, '%').decode('utf-8')
-                    lista = data.split(',')
-                    if(lista[0] != ""): config["peer_ipv4"] = str(implodeIpv4(lista[0]))
-                    if(lista[1] != ""): config["peer_ipv6"] = str(implodeIpv6(lista[1]))
-                    if(lista[2] != ""): config["peer_port"] = str(lista[2]).zfill(5)
-                    if(lista[3] != ""): config["tracker_ipv4"] = str(implodeIpv4(lista[3]))
-                    if(lista[4] != ""): config["tracker_ipv6"] = str(implodeIpv6(lista[4]))
-                    if(lista[5] != ""): config["tracker_port"] = str(lista[5]).zfill(5)
+                data = recvUntil(self.webConnection, '%').decode('utf-8')
+                lista = data.split(',')
+                if(lista[0] != ""): config["peer_ipv4"] = str(implodeIpv4(lista[0]))
+                if(lista[1] != ""): config["peer_ipv6"] = str(implodeIpv6(lista[1]))
+                if(lista[2] != ""): config["peer_port"] = str(lista[2]).zfill(5)
+                if(lista[3] != ""): config["tracker_ipv4"] = str(implodeIpv4(lista[3]))
+                if(lista[4] != ""): config["tracker_ipv6"] = str(implodeIpv6(lista[4]))
+                if(lista[5] != ""): config["tracker_port"] = str(lista[5]).zfill(5)
 
-                    # Sistemo IPS
-                    config["peer_ips"] = str(explodeIpv4(config["peer_ipv4"])) + '|' + str(explodeIpv6(config["peer_ipv6"]))
-                    config["tracker_ips"] = str(explodeIpv4(config["tracker_ipv4"])) + '|' + str(explodeIpv6(config["tracker_ipv6"]))
+                # Sistemo IPS
+                config["peer_ips"] = str(explodeIpv4(config["peer_ipv4"])) + '|' + str(explodeIpv6(config["peer_ipv6"]))
+                config["tracker_ips"] = str(explodeIpv4(config["tracker_ipv4"])) + '|' + str(explodeIpv6(config["tracker_ipv6"]))
 
-                    saveConfiguration(config)
+                saveConfiguration(config)
+
+            elif(data == "UPLD"):
+                data = recvUntil(self.webConnection, '%').decode('utf-8')
+                lista = data.split(',')
+                data = addFile(sTracker, sid, lockSocket, sharedDict)
 
             elif(data == "LOGI"):
                     if(sTracker == None):
@@ -520,39 +525,37 @@ def list2string(lista):
         return ""
     return stringa
 
-def addFile(sock, Session_ID, sLock, sharedDict):
+def addFile(sock, Session_ID, sLock, sharedDict, file_name, file_description):
     while True:    
-        script_dir = os.path.dirname(__file__)  # questo è il path dove si trova questo script
-        rel_path = str(input("Insert the file name (extension included): "))
-        file_name = os.path.join(script_dir, rel_path)
+        #script_dir = os.path.dirname(__file__)  # questo è il path dove si trova questo script
+        #rel_path = str(input("Insert the file name (extension included): "))
+        #file_name = os.path.join(script_dir, rel_path)
         try:
             mioFile = open(file_name, "rb")
             break
         except:
-            print("File not found. Retry...")
+            return "FNF"    #FileNotFound
 
     fileData = mioFile.read()  # carico tutto il contenuto del file nella variabile "data"
     mioFile.close()
 
     fileMd5 = hashlib.md5(fileData + config["peer_ips"].encode('utf-8')).hexdigest()
-    print("[PEER] Md5: ", fileMd5)
 
     if(fileMd5 in sharedDict):
-        print("[PEER] WARNING: You're already sharing the selected file. Abort.")
-        return
+        return "FAS"    #FileAlreadyShared
+    else:
+        data = str(fileMd5)
 
-    fileDescription = str(input("Insert the file description (max 100chars): "))
+    #fileDescription = str(input("Insert the file description (max 100chars): "))
 
-    if len(fileDescription) < 100:  # se "fileDescription" è più corta di 100 caratteri
-        to_be_added = " " * (100 - len(fileDescription))  # creo una stringa con gli spazi necessari per arrivare a 100
-        fileDescription = fileDescription + to_be_added  # concateno gli spazi necessari alla descrizione originale
-    if len(fileDescription) > 100:  # se "fileDescription" ha almeno 100 caratteri
-        fileDescription = fileDescription[0:100]  # prendo i primi 100 caratteri
+    if len(file_description) < 100:  # se "fileDescription" è più corta di 100 caratteri
+        fileDescription = file_description.ljust(100)  # concateno gli spazi necessari alla descrizione originale
+    else:  # se "fileDescription" ha almeno 100 caratteri
+        fileDescription = file_description[0:100]  # prendo i primi 100 caratteri
     
     size = len(fileData)
     if(size > 9999999999):
-        print("[PEER] ERROR: Filesize must fit into 10B, so this file it's too big. Abort.")
-        return
+        return "FTB"    #Filesize must fit into 10B, so this file it's too big. Abort.")
 
     #parts_min = (size // 999999) + 1 # la dimensione di ciascuna parte dev'essere contenibile in 6B 
 
@@ -619,13 +622,13 @@ def addFile(sock, Session_ID, sLock, sharedDict):
 
     if(data[0:4] != "AADR"):
         print("[PEER] ERROR: I was expecting an AADR but i received", data[0:4], ". Abort.")
-        return
+        return "ERR"
 
     try:
         returned_parts = int(data[4:])
     except:
         print("[PEER] ERROR: Tracker returned a not-integer value for #part. Abort.")
-        return
+        return "ERR"
 
     #if(returned_parts != n_parts):  print("[PEER] WARNING: Tracker returned #part=" + str(returned_parts) + " but i was expecting n_parts=" + str(n_parts) + ". Please check.")
     if(returned_parts != nParts):  print("[PEER] WARNING: Tracker returned #part=" + str(returned_parts) + " but i was expecting nParts=" + str(nParts) + ". Please check.")
@@ -637,7 +640,8 @@ def addFile(sock, Session_ID, sLock, sharedDict):
     #sharedDict[fileMd5] = (file_name, part_size, returned_parts, mask)
     sharedDict[fileMd5] = (file_name, lenPart, returned_parts, mask)
     lockSharedDict.release()
-    return
+
+    return str(fileMd5) + ',' + str(returned_parts)
 
 def checkStatus(sid, md5, n_parts, sock, sLock):
     msg = "FCHU" + sid + md5

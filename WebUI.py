@@ -41,6 +41,35 @@ except:
 
 app = Flask(__name__)
 
+@app.route("/upload", methods=['GET','POST'])
+def upload():
+    if request.method == "GET":
+        return render_template('upload.html', message='')
+
+    if request.method == "POST":
+        file = request.files['file']
+        
+        if(file.filename == ''):
+            return render_template('upload.html', message='Prego selezionare un file esistente!')
+        else:
+            data = "UPLD" + str(file.filename) + ',' + str(request.form['descrizione'])
+            s.sendall(data.encode('utf-8'))
+        
+            data = recvUntil(s,"%").decode('utf-8')
+             
+            if(data == "ERR"):
+                data = "Si e' verificato un errore durante il caricamento (tra peer e tracker).</br>Si prega di riprovare..."
+            elif(data == "FNF"):
+                return render_template('upload.html', message='Impossibile aprire il file!')
+            elif(data == "FAS"):
+                return render_template('upload.html', message='Si sta già condividendo il file selezionato!')
+            elif(data == "FTB"):
+                return render_template('upload.html', message="La dimesione in byte del file dev'essere di massimo 10 cifre!")
+            else:
+                lista = data.split(',')
+                data = "Caricamento avvenuto con successo.</br>MD5: " + lista[0] + "</br>Dimensione parti: " + lista[1] + "</br></br><a href='/'>Torna alla homepage</a>"
+            return data
+
 @app.route("/setup", methods=['GET','POST'])
 def setup():
     if request.method == "GET":
