@@ -67,6 +67,10 @@ class webTalker(threading.Thread):
         self.webSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.webConnection = None
         self.webAddress = None
+        self.sTracker = None
+        self.config = {}
+        self.peerProxy = None
+        self.logged = False
 
         # Trovo una porta libera
         while (self.webPort < 65636):
@@ -86,60 +90,62 @@ class webTalker(threading.Thread):
         while(self.killed is False):
             data = recvExact(self.webConnection, 4) # Ho assunto che i comandi inviati dall'interfaccia web siano lunghi 4 bytes
             data = data.decode('utf-8')
-
+            print("Ricevuto dal web comando: ", data)
             if(data == "GETP"):
-                config = loadConfiguration()
-                if(config is None):
+                self.config = loadConfiguration()
+                if(self.config is None):
                     data = ""
                 else:
                     data = ""
-                    data = data + str(config["peer_ipv4"]) + ','
-                    data = data + str(config["peer_ipv6"]) + ','
-                    data = data + str(config["peer_port"]) + ','
-                    data = data + str(config["tracker_ipv4"]) + ','
-                    data = data + str(config["tracker_ipv6"]) + ','
-                    data = data + str(config["tracker_port"])
+                    data = data + str(self.config["peer_ipv4"]) + ','
+                    data = data + str(self.config["peer_ipv6"]) + ','
+                    data = data + str(self.config["peer_port"]) + ','
+                    data = data + str(self.config["tracker_ipv4"]) + ','
+                    data = data + str(self.config["tracker_ipv6"]) + ','
+                    data = data + str(self.config["tracker_port"])
                     
             elif(data == "SETP"):
                 data = recvUntil(self.webConnection, '%').decode('utf-8')
                 lista = data.split(',')
-                if(lista[0] != ""): config["peer_ipv4"] = str(implodeIpv4(lista[0]))
-                if(lista[1] != ""): config["peer_ipv6"] = str(implodeIpv6(lista[1]))
-                if(lista[2] != ""): config["peer_port"] = str(lista[2]).zfill(5)
-                if(lista[3] != ""): config["tracker_ipv4"] = str(implodeIpv4(lista[3]))
-                if(lista[4] != ""): config["tracker_ipv6"] = str(implodeIpv6(lista[4]))
-                if(lista[5] != ""): config["tracker_port"] = str(lista[5]).zfill(5)
+                if(lista[0] != ""): self.config["peer_ipv4"] = str(implodeIpv4(lista[0]))
+                if(lista[1] != ""): self.config["peer_ipv6"] = str(implodeIpv6(lista[1]))
+                if(lista[2] != ""): self.config["peer_port"] = str(lista[2]).zfill(5)
+                if(lista[3] != ""): self.config["tracker_ipv4"] = str(implodeIpv4(lista[3]))
+                if(lista[4] != ""): self.config["tracker_ipv6"] = str(implodeIpv6(lista[4]))
+                if(lista[5] != ""): self.config["tracker_port"] = str(lista[5]).zfill(5)
 
                 # Sistemo IPS
-                config["peer_ips"] = str(explodeIpv4(config["peer_ipv4"])) + '|' + str(explodeIpv6(config["peer_ipv6"]))
-                config["tracker_ips"] = str(explodeIpv4(config["tracker_ipv4"])) + '|' + str(explodeIpv6(config["tracker_ipv6"]))
+                self.config["peer_ips"] = str(explodeIpv4(self.config["peer_ipv4"])) + '|' + str(explodeIpv6(self.config["peer_ipv6"]))
+                self.config["tracker_ips"] = str(explodeIpv4(self.config["tracker_ipv4"])) + '|' + str(explodeIpv6(self.config["tracker_ipv6"]))
 
-                saveConfiguration(config)
-
+                saveConfiguration(self.config)
+                data = "SAVD"
+                
             elif(data == "UPLD"):
                 data = recvUntil(self.webConnection, '%').decode('utf-8')
                 lista = data.split(',')
-                data = addFile(sTracker, sid, lockSocket, sharedDict)
+                data = addFile(sTracker, sid, lockSocket, sharedDict, self.config)
 
             elif(data == "LOGI"):
-                if(sTracker == None):
-                    tracker_ips = str(config["tracker_ipv4"]) + '|' + str(config["tracker_ipv6"])
-                    sTracker = randomConnection(tracker_ips, int(config["tracker_port"]))
-
-                if(sTracker != None):
-                    sid = login(sTracker, lockSocket)
-                    if(sid != "0000000000000000"):
-                        logged = True
-                        peerProxy.enable()
+                if(self.sTracker is None):
+                    tracker_ips = str(self.config["tracker_ipv4"]) + '|' + str(self.config["tracker_ipv6"])
+                    self.sTracker = randomConnection(tracker_ips, int(self.config["tracker_port"]))
+               
+                sid = login(self.sTracker, lockSocket, self.config)
+                
+                if(sid != "0000000000000000"):
+                    self.logged = True
+                    self.peerProxy = istanziaPeerProxy(self.config)
+                    self.peerProxy.enable()
                     data = str(sid)
                 else:
                     data = "ERR"
 
             elif(data == "LOGO"):
-                esito = logout(sTracker, sid, lockSocket, peerProxy)
+                esito = logout(self.sTracker, sid, lockSocket, self.peerProxy)
                 if(esito is True):  # Logout concesso dal tracker
-                    logged = False
-                    sTracker = None
+                    self.logged = False
+                    self.sTracker = None
                     sid = ""
                     lockSharedDict.acquire()
                     sharedDict.clear()
@@ -159,7 +165,7 @@ class webTalker(threading.Thread):
                 data = recvExact(self.webConnection, 20) # Leggo la chiave da ricercare (già formattata a 20 caratteri da WebUI)    
                 data = data.decode('utf-8')
                 print("RICEVUTO DAL WEB:" + data)
-                risultati = searchFile(sTracker, sid, lockSocket, data)
+                risultati = searchFile(self.sTracker, sid, lockSocket, data)
                 
                 data = ""
                 if risultati is not None:   # Se ci sono risultati converto la lista in formato CSV
@@ -174,7 +180,7 @@ class webTalker(threading.Thread):
                 data = data.decode('utf-8')
 
                 result = data.split(',')
-                data = downloadFile(result, sid, sTracker, lockSocket)
+                data = downloadFile(result, sid, self.sTracker, lockSocket)
                            
             data = data + "%"   # Uso il simbolo % come terminatore del messaggio (dall'altra parte leggerò finché non lo trovo)            
             self.webConnection.sendall(data.encode('utf-8'))
@@ -482,29 +488,32 @@ class proxyThread(threading.Thread):
         threading.Thread.__init__(self)
         self.p2pPort = p2pPort
         self.enabled = False
+        self.sockP2p = None
 
     def run(self):
-        sockP2p = v4v6.create_server_sock(("", int(self.p2pPort)))
+        if(self.sockP2p is None):
 
-        # se il dispositivo su cui sto eseguendo la directory non supporta il "dual_stack" allora si crea una socket
-        # multipla per coprire sia v4 che v6
-        if not v4v6.has_dual_stack(sockP2p):
-            sockP2p.close()
-            sockP2p = v4v6.MultipleSocketsListener([("0.0.0.0", int(self.p2pPort)), ("::", int(self.p2pPort))])
-        while True:
-            clientsock, clientAddress = sockP2p.accept()
-            if(debug is True): print("[PEER_PROXY] Received connection from: " + str(clientAddress))
+            self.sockP2p = v4v6.create_server_sock(("", int(self.p2pPort)))
+
+            # se il dispositivo su cui sto eseguendo la directory non supporta il "dual_stack" allora si crea una socket
+            # multipla per coprire sia v4 che v6
+            if not v4v6.has_dual_stack(self.sockP2p):
+                self.sockP2p.close()
+                self.sockP2p = v4v6.MultipleSocketsListener([("0.0.0.0", int(self.p2pPort)), ("::", int(self.p2pPort))])
+            while True:
+                clientsock, clientAddress = self.sockP2p.accept()
+                if(debug is True): print("[PEER_PROXY] Received connection from: " + str(clientAddress))
             
-            if(self.enabled is True):
-                try:
-                    newthread = peerWorker(clientAddress, clientsock)
-                    newthread.start()
-                except:
-                    print("[PEER_PROXY] ERROR: Cannot create a new peerWorker.")
-            else:
-                if(debug is True):  print("[PEER_PROXY] WARNING: Connection refused due i'm DISABLED.")
-                clientsock.shutdown(socket.SHUT_RDWR)
-                clientsock.close()
+                if(self.enabled is True):
+                    try:
+                        newthread = peerWorker(clientAddress, clientsock)
+                        newthread.start()
+                    except:
+                        print("[PEER_PROXY] ERROR: Cannot create a new peerWorker.")
+                else:
+                    if(debug is True):  print("[PEER_PROXY] WARNING: Connection refused due i'm DISABLED.")
+                    clientsock.shutdown(socket.SHUT_RDWR)
+                    clientsock.close()
 
     def enable(self):
         if(debug is True):  print("[PEER_PROXY] INFO: Proxy ENABLED.")
@@ -538,7 +547,7 @@ def list2string(lista):
         return ""
     return stringa
 
-def addFile(sock, Session_ID, sLock, sharedDict, file_name, file_description):
+def addFile(sock, Session_ID, sLock, sharedDict, file_name, file_description, config):
     while True:    
         #script_dir = os.path.dirname(__file__)  # questo è il path dove si trova questo script
         #rel_path = str(input("Insert the file name (extension included): "))
@@ -940,7 +949,7 @@ def loadConfiguration():
         clear()
     return config
 
-def login(sock ,sLock):
+def login(sock ,sLock, config):
     msg = "LOGI" + config["peer_ips"] + str(config["peer_port"]).zfill(5)
     print("[PEER] <" + msg)
 
@@ -1277,7 +1286,7 @@ def setCompleted(md5, part_id): # restituisce False se qualcosa è andato storto
     return True
 
 # Istanzio il peerProxy
-def istanziaPeerProxy():
+def istanziaPeerProxy(config):
     while True:
         try:
             peerProxy = proxyThread(config["peer_port"])
@@ -1286,6 +1295,8 @@ def istanziaPeerProxy():
         except:
             print("ERROR: Exception when creating a peer_proxy thread to serve. I'll retry...")
             getch()
+
+    return peerProxy
 
 #############################################  MAIN  #############################################
 # Istanzio il thread che risponde all'interfaccia web
@@ -1299,97 +1310,100 @@ while True:
             print("ERROR: Exception when creating a webTalker thread to serve. I'll retry...")
             getch()
     break
-    
+
 # Lancio il menu principale
 esci = False
+
 while (esci == False):
-    getch()
-    clear()
+
+    #getch()
+    #clear()
     
-    print(' '*27 + " ________                       _   ") 
-    print(' '*27 + "/__   __/_  _ __ _ __ ___ _ __ | |_ ")
-    print(' '*27 + "  /  // _ \| '__| '__/ _ \ '_ \| __|")
-    print(' '*27 + " /  /| |_| | |  | | |  __/ | | | |_ ")
-    print(' '*27 + "/__/  \___/|_|  |_|  \___|_| |_|\__|")        
-    print()
-    print("    PEER    [", config["peer_ipv4"],    '|', config["peer_ipv6"],    ':', config["peer_port"],   "]")
-    print("    TRACKER [", config["tracker_ipv4"], '|', config["tracker_ipv6"], ':', config["tracker_port"],"]")
+    #print(' '*27 + " ________                       _   ") 
+    #print(' '*27 + "/__   __/_  _ __ _ __ ___ _ __ | |_ ")
+    #print(' '*27 + "  /  // _ \| '__| '__/ _ \ '_ \| __|")
+    #print(' '*27 + " /  /| |_| | |  | | |  __/ | | | |_ ")
+    #print(' '*27 + "/__/  \___/|_|  |_|  \___|_| |_|\__|")        
+    #print()
+    #print("    PEER    [", config["peer_ipv4"],    '|', config["peer_ipv6"],    ':', config["peer_port"],   "]")
+    #print("    TRACKER [", config["tracker_ipv4"], '|', config["tracker_ipv6"], ':', config["tracker_port"],"]")
 
-    if(logged is True):
-        print("    SID: ",sid)
-        print("    Shared files:")
-        for md5, tupla in sharedDict.items():
-            presenti = tupla[3].count('1')
+    #if(logged is True):
+    #    print("    SID: ",sid)
+    #    print("    Shared files:")
+    #    for md5, tupla in sharedDict.items():
+    #        presenti = tupla[3].count('1')
 
-            print("     Md5=" + str(md5) + " Len_parts=" + str(tupla[1]).ljust(6,' ') + " Owned_parts=" + str(presenti) + " of " + str(tupla[2]))
+    #        print("     Md5=" + str(md5) + " Len_parts=" + str(tupla[1]).ljust(6,' ') + " Owned_parts=" + str(presenti) + " of " + str(tupla[2]))
 
-    print('_' * 90)
-    print(" 1 - Login")
-    if(logged is True):
-        print(" 2 - Add file")
-        print(" 3 - Search files")
-        print(" 4 - Logout")
+    #print('_' * 90)
+    #print(" 1 - Login")
+    #if(logged is True):
+    #    print(" 2 - Add file")
+    #    print(" 3 - Search files")
+    #    print(" 4 - Logout")
         
-    print("\n 0 - Exit")
+    #print("\n 0 - Exit")
 
-    try:
-        if(logged is True):
-            scelta = int(input("Action to perform [0-4]: "))
-        else:
-            scelta = int(input("Action to perform [0-1]"))
-    except:
-        print("Please insert only numbers. Retry...")
-        continue
+    #try:
+    #    if(logged is True):
+    #        scelta = int(input("Action to perform [0-4]: "))
+    #    else:
+    #        scelta = int(input("Action to perform [0-1]"))
+    #except:
+    #    print("Please insert only numbers. Retry...")
+    #    continue
 
     # Exit
-    if(scelta == 0):
-        esci = True
-        continue
+    #if(scelta == 0):
+    #    esci = True
+    #    continue
 
     # Login
-    elif(scelta == 1):
-        if(sTracker == None):
+    #elif(scelta == 1):
+    #    if(sTracker == None):
             #tracker_ips = str(explodeIpv4(config["tracker_ipv4"])) + '|' + str(explodeIpv6(config["tracker_ipv6"]))
-            tracker_ips = str(config["tracker_ipv4"]) + '|' + str(config["tracker_ipv6"])
-            sTracker = randomConnection(tracker_ips, int(config["tracker_port"]))
+    #        tracker_ips = str(config["tracker_ipv4"]) + '|' + str(config["tracker_ipv6"])
+    #        sTracker = randomConnection(tracker_ips, int(config["tracker_port"]))
 
-        if(sTracker != None):
-            sid = login(sTracker, lockSocket)
-            if(sid != "0000000000000000"):
-                logged = True
-                peerProxy.enable()
-        else:
-            print("[PEER] Cannot create a connection with the tracker. Please check parameters.")
-
-        continue
+    #    if(sTracker != None):
+    #        sid = login(sTracker, lockSocket)
+    #        if(sid != "0000000000000000"):
+    #            logged = True
+    #            peerProxy.enable()
+    #    else:
+    #        print("[PEER] Cannot create a connection with the tracker. Please check parameters.")
+    
+    #    continue
 
     # Add_file
-    elif((scelta == 2)and(logged is True)):
-        addFile(sTracker, sid, lockSocket, sharedDict)
-        continue
+    #elif((scelta == 2)and(logged is True)):
+    #    addFile(sTracker, sid, lockSocket, sharedDict)
+    #    continue
 
     # Search_files
-    elif((scelta == 3)and(logged is True)):
-        while True:
-            research = input("Insert the keyword to search: ")
-            if(research != ""): break
-        searchFile(sTracker, sid, lockSocket, research)
-        continue
+    #elif((scelta == 3)and(logged is True)):
+    #    while True:
+    #        research = input("Insert the keyword to search: ")
+    #        if(research != ""): break
+    #    searchFile(sTracker, sid, lockSocket, research)
+    #    continue
 
     # Logout
-    elif((scelta == 4)and(logged is True)):
-        esito = logout(sTracker, sid, lockSocket, peerProxy)
-        if(esito is True):  # Logout concesso dal tracker
-            logged = False
-            sTracker = None
-            sid = ""
-            lockSharedDict.acquire()
-            sharedDict.clear()
-            lockSharedDict.release()
-        continue
+    #elif((scelta == 4)and(logged is True)):
+    #    esito = logout(sTracker, sid, lockSocket, peerProxy)
+    #    if(esito is True):  # Logout concesso dal tracker
+    #        logged = False
+    #        sTracker = None
+    #        sid = ""
+    #        lockSharedDict.acquire()
+    #        sharedDict.clear()
+    #        lockSharedDict.release()
+    #    continue
 
-    else:
-        print("Wrong selection. Retry...")
-        continue
+    #else:
+    #    print("Wrong selection. Retry...")
+    #    continue
 
-print("See you soon!")
+    #print("See you soon!")
+    continue

@@ -46,7 +46,7 @@ app = Flask(__name__)
 @app.route("/upload", methods=['GET','POST'])
 def upload():
     if(logged is False):
-        return redirect('/login')
+        return redirect("/setup")
         
     if request.method == "GET":
         return render_template('upload.html', message='')
@@ -93,11 +93,11 @@ def setup():
         data = data     + str(request.form['peer_port']) + ','
         data = data     + str(request.form['tracker_ipv4']) + ','
         data = data     + str(request.form['tracker_ipv6']) + ','
-        data = data     + str(request.form['tracker_port'])
+        data = data     + str(request.form['tracker_port']) + '%'
 
-        s.sendall("SETP".encode('utf-8'))
+        s.sendall(data.encode('utf-8'))
         data = recvUntil(s,"%").decode('utf-8')
-        return data
+        return redirect("/login")
 
 @app.route("/login")
 def login():
@@ -115,7 +115,7 @@ def login():
 @app.route("/logout")
 def logout():
     if(logged is False):
-        return redirect('/login')
+        return redirect("/setup")
 
     s.sendall("LOGO".encode('utf-8'))
     data = recvUntil(s,"%").decode('utf-8')
@@ -129,7 +129,7 @@ def logout():
 @app.route("/")
 def homepage():
     if(logged is False):
-        return redirect('/login')
+        return redirect("/setup")
 
     s.sendall("HOME".encode('utf-8'))
     data = recvUntil(s,"%").decode('utf-8')
@@ -140,7 +140,7 @@ def homepage():
 @app.route("/search", methods=['GET','POST'])
 def search():
     if(logged is False):
-        return redirect('/login')
+        return redirect("/setup")
 
     if request.method == "GET":
         return render_template('search.html')
@@ -178,7 +178,7 @@ def search():
 @app.route("/download", methods=['GET'])
 def download():
     if(logged is False):
-        return redirect('/login')
+        return redirect("/setup")
 
     data = "DOWN" + request.args.get('md5') + ',' + request.args.get('name') + ',' + str(request.args.get('size')) + ',' + str(request.args.get('part')) + "%"
     
@@ -194,4 +194,3 @@ def download():
 
 def kill():
     s.close()
-
