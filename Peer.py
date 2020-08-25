@@ -122,18 +122,31 @@ class webTalker(threading.Thread):
                 data = addFile(sTracker, sid, lockSocket, sharedDict)
 
             elif(data == "LOGI"):
-                    if(sTracker == None):
-                        tracker_ips = str(config["tracker_ipv4"]) + '|' + str(config["tracker_ipv6"])
-                        sTracker = randomConnection(tracker_ips, int(config["tracker_port"]))
+                if(sTracker == None):
+                    tracker_ips = str(config["tracker_ipv4"]) + '|' + str(config["tracker_ipv6"])
+                    sTracker = randomConnection(tracker_ips, int(config["tracker_port"]))
 
-                    if(sTracker != None):
-                        sid = login(sTracker, lockSocket)
-                        if(sid != "0000000000000000"):
-                            logged = True
-                            peerProxy.enable()
-                            data = "Successfully logged, your session_id is: " + str(sid)
-                    else:
-                        data = "Cannot create a connection with the tracker. Please check parameters."
+                if(sTracker != None):
+                    sid = login(sTracker, lockSocket)
+                    if(sid != "0000000000000000"):
+                        logged = True
+                        peerProxy.enable()
+                    data = str(sid)
+                else:
+                    data = "ERR"
+
+            elif(data == "LOGO"):
+                esito = logout(sTracker, sid, lockSocket, peerProxy)
+                if(esito is True):  # Logout concesso dal tracker
+                    logged = False
+                    sTracker = None
+                    sid = ""
+                    lockSharedDict.acquire()
+                    sharedDict.clear()
+                    lockSharedDict.release()
+                    data = "OK"
+                else:
+                    data = "KO"
 
             elif(data == "HOME"):
                 data = ""

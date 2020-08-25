@@ -1,5 +1,7 @@
 import socket
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect
+
+logged = False
 
 # Funzione che consente di avere una ricezione di esattamente n_bytes
 def recvExact(miaSocket, n_bytes):
@@ -43,6 +45,9 @@ app = Flask(__name__)
 
 @app.route("/upload", methods=['GET','POST'])
 def upload():
+    if(logged is False):
+        return redirect('/login')
+        
     if request.method == "GET":
         return render_template('upload.html', message='')
 
@@ -52,7 +57,7 @@ def upload():
         if(file.filename == ''):
             return render_template('upload.html', message='Prego selezionare un file esistente!')
         else:
-            data = "UPLD" + str(file.filename) + ',' + str(request.form['descrizione'])
+            data = "UPLD" + str(file.filename) + ',' + str(request.form['descrizione']) + '%'
             s.sendall(data.encode('utf-8'))
         
             data = recvUntil(s,"%").decode('utf-8')
@@ -99,8 +104,33 @@ def login():
     s.sendall("LOGI".encode('utf-8'))
     data = recvUntil(s,"%").decode('utf-8')
 
+    if(data == "0000000000000000"):
+        return "Login failed (tracker returned all-zeroes sid). Retry..."
+    elif(data == "ERR"):
+        return "Login failed due tracker's socket issues. Retry..."
+    else:
+        logged = True
+        return "Login success.</br>Sid: " + str(data)
+
+@app.route("/logout")
+def logout():
+    if(logged is False):
+        return redirect('/login')
+
+    s.sendall("LOGO".encode('utf-8'))
+    data = recvUntil(s,"%").decode('utf-8')
+
+    if(data == "OK"):
+        logged = False
+        return "Logout successfully performed."
+    else:
+        return "Logout failed."
+
 @app.route("/")
 def homepage():
+    if(logged is False):
+        return redirect('/login')
+
     s.sendall("HOME".encode('utf-8'))
     data = recvUntil(s,"%").decode('utf-8')
 
@@ -109,6 +139,9 @@ def homepage():
 
 @app.route("/search", methods=['GET','POST'])
 def search():
+    if(logged is False):
+        return redirect('/login')
+
     if request.method == "GET":
         return render_template('search.html')
     
@@ -144,6 +177,9 @@ def search():
 
 @app.route("/download", methods=['GET'])
 def download():
+    if(logged is False):
+        return redirect('/login')
+
     data = "DOWN" + request.args.get('md5') + ',' + request.args.get('name') + ',' + str(request.args.get('size')) + ',' + str(request.args.get('part')) + "%"
     
     s.sendall(data.encode('utf-8'))
