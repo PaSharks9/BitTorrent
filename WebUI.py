@@ -1,6 +1,8 @@
 import socket, os
 from flask import Flask, render_template, request, redirect
-#from werkzeug import secure_filename
+
+
+# from werkzeug import secure_filename
 
 
 # Funzione che consente di avere una ricezione di esattamente n_bytes
@@ -44,122 +46,37 @@ except:
     print("ERROR: Wrong port number. Please check, than retry...")
 
 app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path,"downloads")
+app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, "downloads")
+
 
 def logged():
-    s.sendall(("LOG?").encode('utf-8'))
-    data = recvUntil(s,'%').decode('utf-8')
-    if(data == "Y"):    return True
-    elif(data == "N"):  return False
-    else:               return "?"
-
-
-@app.route("/")
-def homepage():
-    # s.sendall("HOME".encode('utf-8'))
-    # data = recvUntil(s, "%").decode('utf-8')
-    return render_template('home.html')
-
-
-@app.route("/upload", methods=['GET','POST'])
-def upload():
-    if(logged() is False):
-        return redirect("/setup")
-        
-    if request.method == "GET":
-        return render_template('upload.html', message='')
-
-    if request.method == "POST":
-        f = request.files['elemento']
-        nome = f.filename
-
-        if(nome == ''):
-            return render_template('upload.html', message='Prego selezionare un file esistente!')
-        else:
-            f.save(os.path.join(app.config['UPLOAD_FOLDER'], nome))
-            data = "UPLD" + os.path.join(app.config['UPLOAD_FOLDER'], nome) + ',' + str(request.form['descrizione']) + '%'
-            s.sendall(data.encode('utf-8'))
-        
-            data = recvUntil(s,"%").decode('utf-8')
-             
-            if(data == "ERR"):
-                data = "Si e' verificato un errore durante il caricamento (tra peer e tracker).</br>Si prega di riprovare..."
-            elif(data == "FNF"):
-                return render_template('upload.html', message='Impossibile aprire il file!')
-            elif(data == "FAS"):
-                return render_template('upload.html', message='Si sta già condividendo il file selezionato!')
-            elif(data == "FTB"):
-                return render_template('upload.html', message="La dimesione in byte del file dev'essere di massimo 10 cifre!")
-            else:
-                lista = data.split(',')
-                data = "Caricamento avvenuto con successo.</br>MD5: " + lista[0] + "</br>Dimensione parti: " + lista[1] + "</br></br><a href='/'>Torna alla homepage</a>"
-            return data
-
-@app.route("/setup", methods=['GET','POST'])
-def setup():
-    if request.method == "GET":
-        s.sendall("GETP".encode('utf-8'))
-        data = recvUntil(s,"%").decode('utf-8')
-        
-        if(data == ""):
-            return render_template('setup.html', ipv4peer="", ipv6peer="", portpeer="", ipv4tracker="", ipv6tracker="", porttracker="")
-        else:   # se peer.py ha letto dei parametri dal file di configurazione allora li uso per pre-compilare i campi da inserire
-            lista = data.split(',')
-            return render_template('setup.html', ipv4peer=lista[0], ipv6peer=lista[1], portpeer=lista[2], ipv4tracker=lista[3], ipv6tracker=lista[4], porttracker=lista[5])
-    
-    if request.method == "POST":
-        data = "SETP"   + str(request.form['peer_ipv4']) + ','
-        data = data     + str(request.form['peer_ipv6']) + ','
-        data = data     + str(request.form['peer_port']) + ','
-        data = data     + str(request.form['tracker_ipv4']) + ','
-        data = data     + str(request.form['tracker_ipv6']) + ','
-        data = data     + str(request.form['tracker_port']) + '%'
-
-        s.sendall(data.encode('utf-8'))
-        data = recvUntil(s,"%").decode('utf-8')
-        return redirect("/login")
-
-@app.route("/login")
-def login():
-    s.sendall("LOGI".encode('utf-8'))
-    data = recvUntil(s,"%").decode('utf-8')
-
-    if(data == "0000000000000000"):
-        return "Login failed (tracker returned all-zeroes sid). Retry..."
-    elif(data == "ERR"):
-        return "Login failed due tracker's socket issues. Retry..."
+    s.sendall("LOG?".encode('utf-8'))
+    data = recvUntil(s, '%').decode('utf-8')
+    if data == "Y":
+        return True
+    elif data == "N":
+        return False
     else:
-        return "Login success.</br>Sid: " + str(data)
+        return "?"
 
-@app.route("/logout")
-def logout():
-    if(logged() is False):
-        return redirect("/setup")
 
-    s.sendall("LOGO".encode('utf-8'))
-    data = recvUntil(s,"%").decode('utf-8')
-
-    if(data == "OK"):   return "Logout successfully performed."
-    else:               return "Logout failed."
-
-<<<<<<< HEAD
-@app.route("/search", methods=['GET', 'POST'])
-=======
 @app.route("/")
 def homepage():
-    if(logged() is False):
+    if logged() is False:
         return redirect("/setup")
 
     s.sendall("HOME".encode('utf-8'))
-    data = recvUntil(s,"%").decode('utf-8')
+    data = recvUntil(s, "%").decode('utf-8')
 
-    if(data == ""): data = 'Al momento non si possiede alcuna parte di alcun file.<br><a href="/search">Cerca un file</a><br><a href="/upload">Condividi un file</a>' 
+    if data == "":
+        data = 'Al momento non si possiede alcuna parte di alcun file.<br><a href="/search">Cerca un file</a><br>' \
+               '<a href="/upload">Condividi un file</a>'
     return data
 
-@app.route("/search", methods=['GET','POST'])
->>>>>>> 577dfcc680eaf3b872f79fdbda4832f1c6f5911f
+
+@app.route("/search", methods=['GET', 'POST'])
 def search():
-    if(logged() is False):
+    if logged() is False:
         return redirect("/setup")
 
     if request.method == "GET":
@@ -180,43 +97,117 @@ def search():
         return render_template('search.html', data=risultati)
 
 
+@app.route("/upload", methods=['GET', 'POST'])
+def upload():
+    if logged() is False:
+        return redirect("/setup")
+
+    if request.method == "GET":
+        return render_template('upload.html', message='')
+
+    if request.method == "POST":
+        f = request.files['elemento']
+        nome = f.filename
+
+        if nome == '':
+            return render_template('upload.html', message='Prego selezionare un file esistente!')
+        else:
+            f.save(os.path.join(app.config['UPLOAD_FOLDER'], nome))
+            data = "UPLD" + os.path.join(app.config['UPLOAD_FOLDER'], nome) + ',' + str(
+                request.form['descrizione']) + '%'
+            s.sendall(data.encode('utf-8'))
+
+            data = recvUntil(s, "%").decode('utf-8')
+
+            if data == "ERR":
+                data = "Si e' verificato un errore durante il caricamento (tra peer e tracker).</br>Si prega di riprovare..."
+            elif data == "FNF":
+                return render_template('upload.html', message='Impossibile aprire il file!')
+            elif data == "FAS":
+                return render_template('upload.html', message='Si sta già condividendo il file selezionato!')
+            elif data == "FTB":
+                return render_template('upload.html',
+                                       message="La dimesione in byte del file dev'essere di massimo 10 cifre!")
+            else:
+                lista = data.split(',')
+                data = "Caricamento avvenuto con successo.</br>MD5: " + lista[0] + "</br>Dimensione parti: " + lista[
+                    1] + "</br></br><a href='/'>Torna alla homepage</a>"
+            return data
+
+
+@app.route("/setup", methods=['GET', 'POST'])
+def setup():
+    if request.method == "GET":
+        s.sendall("GETP".encode('utf-8'))
+        data = recvUntil(s, "%").decode('utf-8')
+
+        if data == "":
+            return render_template('setup.html', ipv4peer="", ipv6peer="", portpeer="", ipv4tracker="", ipv6tracker="",
+                                   porttracker="", msg="y")
+        else:  # se peer.py ha letto dei parametri dal file di configurazione allora li uso per pre-compilare i campi da inserire
+            lista = data.split(',')
+            return render_template('setup.html', ipv4peer=lista[0], ipv6peer=lista[1], portpeer=lista[2],
+                                   ipv4tracker=lista[3], ipv6tracker=lista[4], porttracker=lista[5])
+
+    if request.method == "POST":
+        data = "SETP" + str(request.form['peer_ipv4']) + ','
+        data = data + str(request.form['peer_ipv6']) + ','
+        data = data + str(request.form['peer_port']) + ','
+        data = data + str(request.form['tracker_ipv4']) + ','
+        data = data + str(request.form['tracker_ipv6']) + ','
+        data = data + str(request.form['tracker_port']) + '%'
+
+        s.sendall(data.encode('utf-8'))
+        data = recvUntil(s, "%").decode('utf-8')
+        return redirect("/login")
+
+
+@app.route("/login")
+def login():
+    s.sendall("LOGI".encode('utf-8'))
+    data = recvUntil(s, "%").decode('utf-8')
+
+    if data == "0000000000000000":
+        return "Login failed (tracker returned all-zeroes sid). Retry..."
+    elif data == "ERR":
+        return "Login failed due tracker's socket issues. Retry..."
+    else:
+        return "Login success.</br>Sid: " + str(data)
+
+
+@app.route("/logout")
+def logout():
+    if logged() is False:
+        return redirect("/setup")
+
+    s.sendall("LOGO".encode('utf-8'))
+    data = recvUntil(s, "%").decode('utf-8')
+
+    if data == "OK":
+        return "Logout successfully performed."
+    else:
+        return "Logout failed."
+
+
 @app.route("/download", methods=['GET'])
 def download():
-<<<<<<< HEAD
-
-    if(logged is False):
+    if logged() is False:
         return redirect('/login')
-=======
-    if(logged() is False):
+    if logged() is False:
         return redirect("/setup")
->>>>>>> 577dfcc680eaf3b872f79fdbda4832f1c6f5911f
 
-    data = "DOWN" + request.args.get('md5') + ',' + request.args.get('name') + ',' + str(request.args.get('size')) + ',' + str(request.args.get('part')) + "%"
-    
+    data = "DOWN" + request.args.get('md5') + ',' + request.args.get('name') + ',' + str(
+        request.args.get('size')) + ',' + str(request.args.get('part')) + "%"
+
     s.sendall(data.encode('utf-8'))
 
-    # data = "DOWN" + request.args.get('md5') + ',' + request.args.get('name') + ',' + str(request.args.get('size')) + ',' + str(request.args.get('part')) + "%"
-
-    # s.sendall(data.encode('utf-8'))
-
-    # data = recvUntil(s, "%").decode('utf-8')
-
-    # if data == "OK":
-      #  data = "Download eseguito correttamente."
-    # else:
-      #  return render_template('download.html')
-    # data = data + "<br><br><a href='/'>Torna alla homepage</a>"
-
-    # return data
     return render_template('download.html')
 
+
 def kill():
-<<<<<<< HEAD
     s.close()
 
 
 if __name__ == "__main__":
     app.run(debug=True)
-=======
     s.close()
->>>>>>> 577dfcc680eaf3b872f79fdbda4832f1c6f5911f
