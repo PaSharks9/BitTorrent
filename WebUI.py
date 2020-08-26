@@ -1,5 +1,6 @@
-import socket
+import socket, os
 from flask import Flask, render_template, request, redirect
+#from werkzeug import secure_filename
 
 # Funzione che consente di avere una ricezione di esattamente n_bytes
 def recvExact(miaSocket, n_bytes):
@@ -40,6 +41,7 @@ except:
     print("ERROR: Wrong port number. Please check, than retry...")
 
 app = Flask(__name__)
+app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path,"downloads")
 
 def logged():
     s.sendall(("LOG?").encode('utf-8'))
@@ -47,7 +49,6 @@ def logged():
     if(data == "Y"):    return True
     elif(data == "N"):  return False
     else:               return "?"
-            
 
 @app.route("/upload", methods=['GET','POST'])
 def upload():
@@ -58,12 +59,14 @@ def upload():
         return render_template('upload.html', message='')
 
     if request.method == "POST":
-        file = request.files['file']
-        
-        if(file.filename == ''):
+        f = request.files['elemento']
+        nome = f.filename
+
+        if(nome == ''):
             return render_template('upload.html', message='Prego selezionare un file esistente!')
         else:
-            data = "UPLD" + str(file.filename) + ',' + str(request.form['descrizione']) + '%'
+            f.save(os.path.join(app.config['UPLOAD_FOLDER'], nome))
+            data = "UPLD" + os.path.join(app.config['UPLOAD_FOLDER'], nome) + ',' + str(request.form['descrizione']) + '%'
             s.sendall(data.encode('utf-8'))
         
             data = recvUntil(s,"%").decode('utf-8')
@@ -136,7 +139,7 @@ def homepage():
     s.sendall("HOME".encode('utf-8'))
     data = recvUntil(s,"%").decode('utf-8')
 
-    if(data == ""): data = 'Al momento non si possiede alcuna parte di alcun file.<br><a href="/search">Cerca un file</a>' 
+    if(data == ""): data = 'Al momento non si possiede alcuna parte di alcun file.<br><a href="/search">Cerca un file</a><br><a href="/upload">Condividi un file</a>' 
     return data
 
 @app.route("/search", methods=['GET','POST'])

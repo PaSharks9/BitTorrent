@@ -124,7 +124,7 @@ class webTalker(threading.Thread):
             elif(data == "UPLD"):
                 data = recvUntil(self.webConnection, '%').decode('utf-8')
                 lista = data.split(',')
-                data = addFile(sTracker, sid, lockSocket, sharedDict, self.config)
+                data = addFile(self.sTracker, sid, lockSocket, sharedDict, lista[0], lista[1], self.config)
 
             elif(data == "LOGI"):
                 if(self.sTracker is None):
@@ -560,6 +560,7 @@ def addFile(sock, Session_ID, sLock, sharedDict, file_name, file_description, co
             mioFile = open(file_name, "rb")
             break
         except:
+            print("FileNotFound:", file_name)
             return "FNF"    #FileNotFound
 
     fileData = mioFile.read()  # carico tutto il contenuto del file nella variabile "data"
