@@ -5,9 +5,9 @@
 </head>
 <body>
     <div class="container">
-        <form role="form" method='POST' action="/upload">
+        <form role="form" method='POST' action="/upload" enctype="multipart/form-data">
             <div class="form-group">
-                <p>Selezionare il file da condividere <input type="file" name="file"></p>
+                <p><input type="file" name="elemento" id="elemento"></p>
                 <p><input type="text" name="descrizione" id="descrizione" placeholder="Scrivi una descrizione"></p>
             </div>
             <button type="submit">Carica!</button>

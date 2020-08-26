@@ -1,7 +1,6 @@
-import socket
+import socket, os
 from flask import Flask, render_template, request, redirect
-
-logged = False
+#from werkzeug import secure_filename
 
 
 # Funzione che consente di avere una ricezione di esattamente n_bytes
@@ -45,6 +44,14 @@ except:
     print("ERROR: Wrong port number. Please check, than retry...")
 
 app = Flask(__name__)
+app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path,"downloads")
+
+def logged():
+    s.sendall(("LOG?").encode('utf-8'))
+    data = recvUntil(s,'%').decode('utf-8')
+    if(data == "Y"):    return True
+    elif(data == "N"):  return False
+    else:               return "?"
 
 
 @app.route("/")
@@ -56,19 +63,21 @@ def homepage():
 
 @app.route("/upload", methods=['GET','POST'])
 def upload():
-    if(logged is False):
-        return redirect('/login')
+    if(logged() is False):
+        return redirect("/setup")
         
     if request.method == "GET":
         return render_template('upload.html', message='')
 
     if request.method == "POST":
-        file = request.files['file']
-        
-        if(file.filename == ''):
+        f = request.files['elemento']
+        nome = f.filename
+
+        if(nome == ''):
             return render_template('upload.html', message='Prego selezionare un file esistente!')
         else:
-            data = "UPLD" + str(file.filename) + ',' + str(request.form['descrizione']) + '%'
+            f.save(os.path.join(app.config['UPLOAD_FOLDER'], nome))
+            data = "UPLD" + os.path.join(app.config['UPLOAD_FOLDER'], nome) + ',' + str(request.form['descrizione']) + '%'
             s.sendall(data.encode('utf-8'))
         
             data = recvUntil(s,"%").decode('utf-8')
@@ -104,11 +113,11 @@ def setup():
         data = data     + str(request.form['peer_port']) + ','
         data = data     + str(request.form['tracker_ipv4']) + ','
         data = data     + str(request.form['tracker_ipv6']) + ','
-        data = data     + str(request.form['tracker_port'])
+        data = data     + str(request.form['tracker_port']) + '%'
 
-        s.sendall("SETP".encode('utf-8'))
+        s.sendall(data.encode('utf-8'))
         data = recvUntil(s,"%").decode('utf-8')
-        return data
+        return redirect("/login")
 
 @app.route("/login")
 def login():
@@ -120,27 +129,38 @@ def login():
     elif(data == "ERR"):
         return "Login failed due tracker's socket issues. Retry..."
     else:
-        logged = True
         return "Login success.</br>Sid: " + str(data)
 
 @app.route("/logout")
 def logout():
-    if(logged is False):
-        return redirect('/login')
+    if(logged() is False):
+        return redirect("/setup")
 
     s.sendall("LOGO".encode('utf-8'))
     data = recvUntil(s,"%").decode('utf-8')
 
-    if(data == "OK"):
-        logged = False
-        return "Logout successfully performed."
-    else:
-        return "Logout failed."
+    if(data == "OK"):   return "Logout successfully performed."
+    else:               return "Logout failed."
 
+<<<<<<< HEAD
 @app.route("/search", methods=['GET', 'POST'])
+=======
+@app.route("/")
+def homepage():
+    if(logged() is False):
+        return redirect("/setup")
+
+    s.sendall("HOME".encode('utf-8'))
+    data = recvUntil(s,"%").decode('utf-8')
+
+    if(data == ""): data = 'Al momento non si possiede alcuna parte di alcun file.<br><a href="/search">Cerca un file</a><br><a href="/upload">Condividi un file</a>' 
+    return data
+
+@app.route("/search", methods=['GET','POST'])
+>>>>>>> 577dfcc680eaf3b872f79fdbda4832f1c6f5911f
 def search():
-    if(logged is False):
-        return redirect('/login')
+    if(logged() is False):
+        return redirect("/setup")
 
     if request.method == "GET":
         return render_template('search.html', data="")
@@ -162,9 +182,14 @@ def search():
 
 @app.route("/download", methods=['GET'])
 def download():
+<<<<<<< HEAD
 
     if(logged is False):
         return redirect('/login')
+=======
+    if(logged() is False):
+        return redirect("/setup")
+>>>>>>> 577dfcc680eaf3b872f79fdbda4832f1c6f5911f
 
     data = "DOWN" + request.args.get('md5') + ',' + request.args.get('name') + ',' + str(request.args.get('size')) + ',' + str(request.args.get('part')) + "%"
     
@@ -186,8 +211,12 @@ def download():
     return render_template('download.html')
 
 def kill():
+<<<<<<< HEAD
     s.close()
 
 
 if __name__ == "__main__":
     app.run(debug=True)
+=======
+    s.close()
+>>>>>>> 577dfcc680eaf3b872f79fdbda4832f1c6f5911f
