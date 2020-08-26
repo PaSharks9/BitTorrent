@@ -1,8 +1,6 @@
 import socket
 from flask import Flask, render_template, request, redirect
 
-logged = False
-
 # Funzione che consente di avere una ricezione di esattamente n_bytes
 def recvExact(miaSocket, n_bytes):
     rimanenti = n_bytes
@@ -43,9 +41,17 @@ except:
 
 app = Flask(__name__)
 
+def logged():
+    s.sendall(("LOG?").encode('utf-8'))
+    data = recvUntil(s,'%').decode('utf-8')
+    if(data == "Y"):    return True
+    elif(data == "N"):  return False
+    else:               return "?"
+            
+
 @app.route("/upload", methods=['GET','POST'])
 def upload():
-    if(logged is False):
+    if(logged() is False):
         return redirect("/setup")
         
     if request.method == "GET":
@@ -109,26 +115,22 @@ def login():
     elif(data == "ERR"):
         return "Login failed due tracker's socket issues. Retry..."
     else:
-        logged = True
         return "Login success.</br>Sid: " + str(data)
 
 @app.route("/logout")
 def logout():
-    if(logged is False):
+    if(logged() is False):
         return redirect("/setup")
 
     s.sendall("LOGO".encode('utf-8'))
     data = recvUntil(s,"%").decode('utf-8')
 
-    if(data == "OK"):
-        logged = False
-        return "Logout successfully performed."
-    else:
-        return "Logout failed."
+    if(data == "OK"):   return "Logout successfully performed."
+    else:               return "Logout failed."
 
 @app.route("/")
 def homepage():
-    if(logged is False):
+    if(logged() is False):
         return redirect("/setup")
 
     s.sendall("HOME".encode('utf-8'))
@@ -139,7 +141,7 @@ def homepage():
 
 @app.route("/search", methods=['GET','POST'])
 def search():
-    if(logged is False):
+    if(logged() is False):
         return redirect("/setup")
 
     if request.method == "GET":
@@ -177,7 +179,7 @@ def search():
 
 @app.route("/download", methods=['GET'])
 def download():
-    if(logged is False):
+    if(logged() is False):
         return redirect("/setup")
 
     data = "DOWN" + request.args.get('md5') + ',' + request.args.get('name') + ',' + str(request.args.get('size')) + ',' + str(request.args.get('part')) + "%"

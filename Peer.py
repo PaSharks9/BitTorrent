@@ -141,6 +141,10 @@ class webTalker(threading.Thread):
                 else:
                     data = "ERR"
 
+            elif(data == "LOG?"):
+                if(self.logged is True):    data = "Y"
+                else:                       data = "N"
+                
             elif(data == "LOGO"):
                 esito = logout(self.sTracker, sid, lockSocket, self.peerProxy)
                 if(esito is True):  # Logout concesso dal tracker
@@ -475,7 +479,7 @@ class poolWorker(threading.Thread):
                 self.completedLock.release()
                 
                 self.working = False
-        return
+            return
 
     def isBusy(self):
         return self.working
