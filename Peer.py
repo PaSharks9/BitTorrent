@@ -184,12 +184,13 @@ class webTalker(threading.Thread):
 
             elif data == "HOME":
                 data = ""
-
-                for md5, tupla in sharedDict.items():
-                    presenti = tupla[3].count('1')
-                    data = ("<BR>Md5=" + str(md5) + " Len_parts=" + str(tupla[1]).ljust(6, ' ') + " Owned_parts=" + str(
-                        presenti) + " of " + str(tupla[2]) + "</BR>")
-
+                # md5:lenparts:ownedparts:totalparts
+                if len(sharedDict.items()) != 0:
+                    for md5, tupla in sharedDict.items():
+                        presenti = tupla[3].count('1')
+                        data = (str(md5) + ":" + str(tupla[1]).ljust(6, ' ') + ":" + str(
+                            presenti) + ":" + str(tupla[2]))
+                        data += "|"
             elif data == "FIND":
                 data = recvExact(self.webConnection,
                                  20)  # Leggo la chiave da ricercare (già formattata a 20 caratteri da WebUI)

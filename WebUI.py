@@ -71,11 +71,19 @@ def homepage():
 
     s.sendall("HOME".encode('utf-8'))
     data = recvUntil(s, "%").decode('utf-8')
-
     if data == "":
-        data = 'Al momento non si possiede alcuna parte di alcun file.<br><a href="/search">Cerca un file</a><br>' \
-               '<a href="/upload">Condividi un file</a>'
-    return render_template('home.html', data=data, sid=sid)
+        dataLists = ""
+    else:
+        dataLists = []
+        data = data.split('|')
+        for element in data:
+            fileInfo = element.split(':')
+            if '' in fileInfo:
+                dataLists.append(fileInfo.remove(''))
+            else:
+                dataLists.append(fileInfo)
+        print(dataLists)
+    return render_template('home.html', data=dataLists, sid=sid)
 
 
 @app.route("/setup", methods=['GET', 'POST'])
