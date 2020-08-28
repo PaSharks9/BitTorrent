@@ -196,7 +196,7 @@ class webTalker(threading.Thread):
                                  20)  # Leggo la chiave da ricercare (già formattata a 20 caratteri da WebUI)
                 data = data.decode('utf-8')
                 print("RICEVUTO DAL WEB:" + data)
-                risultati = searchFile(sTracker, sid, lockSocket, data)
+                risultati = searchFile(self.sTracker, sid, lockSocket, data)
 
                 data = ""
                 if risultati is not None:  # Se ci sono risultati converto la lista in formato CSV
@@ -1200,7 +1200,7 @@ def searchFile(sock, Session_ID, sLock, research):
 
     # "ALOO".#idm5[3B].{File_md5_i[32B].File_name_i[100B].len_file[10B].len_part[6B]}
     data = recvExact(sock, 7).decode('utf-8')  # ricevo "ALOO.#idm5"
-    if (data[0:4] != "ALOO"):
+    if data[0:4] != "ALOO":
         print("[PEER] ERROR: Received " + str(data[0:4]) + " when expecting an ALOO. Abort.")
         sLock.release()
         return
@@ -1212,7 +1212,7 @@ def searchFile(sock, Session_ID, sLock, research):
         sLock.release()
         return
 
-    if (idm5 == 0):
+    if idm5 == 0:
         print("[PEER] >", data)
         print("[PEER] Tracker returned zero items. Search completed.")
         sLock.release()

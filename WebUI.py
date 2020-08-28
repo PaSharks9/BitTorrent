@@ -136,15 +136,15 @@ def search():
 
     if request.method == "POST":
         searchKey = "FIND"
-        if len(request.form['searchkey']) < 20:  # se "research" è più corta di 20 caratteri
-            searchKey = searchKey + (request.form['searchkey']).ljust(20)
+        if len(request.form['filename']) < 20:  # se "research" è più corta di 20 caratteri
+            searchKey = searchKey + (request.form['filename']).ljust(20)
         else:
-            temp = request.form['searchkey']
+            temp = request.form['filename']
             searchKey = searchKey + temp[0:20]  # prendo i primi 20 caratteri della chiave
 
         s.sendall(searchKey.encode('utf-8'))
         temp = recvUntil(s, "%").decode('utf-8')
-
+        print("temp: ", temp)
         risultati = temp.split(',')  # da formato CSV restituisce una lista
         return render_template('search.html', data=risultati, sid=logged())
 
@@ -183,9 +183,7 @@ def upload():
                                        message="La dimesione in byte del file dev'essere di massimo 10 cifre!")
             else:
                 lista = data.split(',')
-                data = "Caricamento avvenuto con successo.</br>MD5: " + lista[0] + "</br>Dimensione parti: " + lista[
-                    1] + "</br></br><a href='/'>Torna alla homepage</a>"
-            return data
+                return render_template('upload.html', md5=lista[0], dim=lista[1], load="y")
 
 
 @app.route("/logout")
@@ -222,5 +220,5 @@ def kill():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=False)
     s.close()
