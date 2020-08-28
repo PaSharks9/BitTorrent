@@ -11,7 +11,7 @@
       <a class="nav-link" href="/download">Download</a>
   </li>
   <li class="nav-item">
-      <a class="nav-link" href="/add">Add File</a>
+      <a class="nav-link" href="/upload">Add File</a>
   </li>
 {% endblock %}
 
@@ -21,10 +21,10 @@
 <div  style="text-align: center;">
    <h1>Search File</h1>
 </div>
-<form class="form-inline" style="margin-top: 50px">
+<form role="form"  method='POST' action="/search" class="form-inline" style="margin-top: 50px">
   <div class="form-group mx-sm-3 mb-2">
     <label for="filename"> Inserire il File che si vuole cercare: </label> <br>
-    <input type="text" class="form-control" id="filename" placeholder="Filename" style="margin-left: 20px">
+    <input type="text" class="form-control" id="filename" name="filename" placeholder="Filename" style="margin-left: 20px">
   </div>
   <button type="submit" class="btn btn-primary mb-2">Cerca!</button>
 </form>

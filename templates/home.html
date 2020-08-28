@@ -2,18 +2,33 @@
 
 
 {% block navbar %}
-  <li class="nav-item active">
-      <a class="nav-link" href="/">Home </a>
-  </li>
-  <li class="nav-item">
-      <a class="nav-link" href="/search">Search</a>
-  </li>
-  <li class="nav-item">
-      <a class="nav-link" href="/download">Download</a>
-  </li>
-  <li class="nav-item">
-      <a class="nav-link" href="/add">Add File</a>
-  </li>
+    {% if sid == False %}
+      <li class="nav-item active">
+          <a class="nav-link" href="/setup">Home </a>
+      </li>
+      <li class="nav-item">
+          <a class="nav-link" href="/setup">Search</a>
+      </li>
+      <li class="nav-item">
+          <a class="nav-link" href="/setup">Download</a>
+      </li>
+      <li class="nav-item">
+          <a class="nav-link" href="/setup">Add File</a>
+      </li>
+    {% else %}
+      <li class="nav-item active">
+          <a class="nav-link" href="/">Home </a>
+      </li>
+      <li class="nav-item">
+          <a class="nav-link" href="/search">Search</a>
+      </li>
+      <li class="nav-item">
+          <a class="nav-link" href="/download">Download</a>
+      </li>
+      <li class="nav-item">
+          <a class="nav-link" href="/upload">Add File</a>
+      </li>
+    {% endif %}
 {% endblock %}
 
 {% block content %}
