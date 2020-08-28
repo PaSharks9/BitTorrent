@@ -17,4 +17,23 @@
 {% endblock %}
 
 {% block content %}
+    <div>
+        {% if sid == False or sid == 0000000000000000 or sid == "ERR" %}
+          <div class="card-body">
+              <div style="float: left; margin-left: 5px;" >Status:</div>
+              <div style="float: left; margin-left: 5px; color: red;"> OffLine </div><br>
+              <div style=" text-align: center; margin-top: 100px;">
+                  <h5 style="color: blue; font-size: 150%;">LOGIN</h5>
+                  <p class="card-text" style="margin-top: 50px">Click the button below to log the peer to the tracker</p>
+                  <a href="/setup" class="btn btn-primary" style="color: blue; text-align: center; margin-top: 30px">Login</a>
+              </div>
+          </div>
+        {% else %}
+          <div style="text-align: left;">
+              <div style="float: left; margin-left: 5px;" >Status:</div>
+              <div style="float: left; margin-left: 5px; color: green;"> Online </div><br>
+              <div style="float: left; margin-left: 5px;">SID: {{ sid }}</div>
+          </div>
+        {% endif %}
+    </div>
 {% endblock %}

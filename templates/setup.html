@@ -1,14 +1,13 @@
 {% extends "interfaceHomepage.html" %}
 
-{{% block script %}}
+{% block script %}
 <script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
-<script src="js/bootstrap.min.js"></script>
 <script>
     $(document).ready(function(){
         $("#exampleModal").modal('show');
     });
 </script>
-{{% endblock %}}
+{% endblock %}
 
 {% block navbar %}
   <li class="nav-item active">
@@ -47,6 +46,7 @@
       </div>
     </div>
 {% endif %}
+
  <form role="form" method='POST' action="/setup">
             <div class="form-group">
                 <table>

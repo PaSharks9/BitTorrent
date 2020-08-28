@@ -155,7 +155,7 @@ class webTalker(threading.Thread):
 
                 sid = login(self.sTracker, lockSocket, self.config)
 
-                if (sid != "0000000000000000"):
+                if sid != "0000000000000000":
                     self.logged = True
                     self.peerProxy = istanziaPeerProxy(self.config)
                     self.peerProxy.enable()
@@ -163,11 +163,11 @@ class webTalker(threading.Thread):
                 else:
                     data = "ERR"
 
-            elif (data == "LOG?"):
-                if (self.logged is True):
-                    data = "Y"
+            elif data == "LOG?":
+                if self.logged is True:
+                    data = sid
                 else:
-                    data = "N"
+                    data = "False"
 
             elif data == "LOGO":
                 esito = logout(self.sTracker, sid, lockSocket, self.peerProxy)
@@ -218,11 +218,11 @@ class webTalker(threading.Thread):
             elif data == "DOWN":
                 data = recvUntil(self.webConnection, '%')
                 data = data.decode('utf-8')
-
                 result = data.split(',')
                 data = downloadFile(result, sid, self.sTracker, lockSocket)
 
-            data = data + "%"  # Uso il simbolo % come terminatore del messaggio (dall'altra parte leggerò finché non lo trovo)
+            data = data + "%"  # Uso il simbolo % come terminatore del messaggio (dall'altra parte leggerò finché non
+            # lo trovo)
             self.webConnection.sendall(data.encode('utf-8'))
 
         try:
