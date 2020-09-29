@@ -111,20 +111,15 @@ def setup():
 
         s.sendall(data.encode('utf-8'))
         data = recvUntil(s, "%").decode('utf-8')
-        return redirect('/login')
-
-
-@app.route("/login")
-def login():
-    s.sendall("LOGI".encode('utf-8'))
-    data = recvUntil(s, "%").decode('utf-8')
-    if data == "0000000000000000":
-        return redirect('/')
-    elif data == "ERR":
-        return redirect('/')
-    else:
-        return redirect('/')
-
+        
+        s.sendall("LOGI".encode('utf-8'))
+        data = recvUntil(s, "%").decode('utf-8')
+        
+        if data == "0000000000000000" or data == "ERR":
+            return render_template('error.html', code=data)
+        else:
+            return redirect("/")
+        
 
 @app.route("/search", methods=['GET', 'POST'])
 def search():
