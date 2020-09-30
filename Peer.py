@@ -606,7 +606,7 @@ def addFile(sock, Session_ID, sLock, sharedDict, file_name, file_description, co
 
     fileMd5 = hashlib.md5(fileData + config["peer_ips"].encode('utf-8')).hexdigest()
 
-    if (fileMd5 in sharedDict):
+    if fileMd5 in sharedDict:
         return "FAS"  # FileAlreadyShared
     else:
         data = str(fileMd5)
@@ -619,7 +619,7 @@ def addFile(sock, Session_ID, sLock, sharedDict, file_name, file_description, co
         fileDescription = file_description[0:100]  # prendo i primi 100 caratteri
 
     size = len(fileData)
-    if (size > 9999999999):
+    if size > 9999999999:
         return "FTB"  # Filesize must fit into 10B, so this file it's too big. Abort.")
 
     # parts_min = (size // 999999) + 1 # la dimensione di ciascuna parte dev'essere contenibile in 6B
@@ -746,7 +746,7 @@ def checkStatus(sid, md5, n_parts, sock, sLock):
         mask = []
         for i in range(0, n_parts):
             # mask.append(maschera[i]) # inserisco, carattere per carettere, i primi "n_parts" bit della maschera
-            if (maschera[i] is True):
+            if maschera[i] is True:
                 mask.append('1')
             else:
                 mask.append('0')
@@ -773,7 +773,7 @@ def downloadFile(result, Session_ID, sTracker, sLock):
 
     file_path = os.path.join(script_dir, file_name)
 
-    if (n_parts * part_size < file_size):    n_parts += 1
+    if n_parts * part_size < file_size:    n_parts += 1
 
     # if(md5 in sharedDict):
     # while True:
@@ -835,9 +835,9 @@ def downloadFile(result, Session_ID, sTracker, sLock):
                 value = int(partsList[-1][1])  # prendo la disponibilità massima tra le parti
                 stop = False  # (part_id, *disponibilità* , [(peerA,portA),(peerB,portB),...])
 
-                while ((stop is False) and (index < len(partsList))):
-                    if (int(partsList[index][1]) <= value):
-                        if (assignedMask[int(partsList[index][0])] == '0'):
+                while (stop is False) and (index < len(partsList)):
+                    if int(partsList[index][1]) <= value:
+                        if assignedMask[int(partsList[index][0])] == '0':
                             value = int(partsList[index][1])
                             toChoose.append(int(partsList[index][0]))
                         index += 1
@@ -849,15 +849,15 @@ def downloadFile(result, Session_ID, sTracker, sLock):
 
                 # Scelgo la parte
                 part_id = random.choice(toChoose)
-                if (debug is True):  print(
+                if debug is True:  print(
                     "[PEER] Random choosed part " + str(part_id) + " available from " + str(value) + " peers.")
 
                 # Recupero la lista di peer
                 trovato = False
                 peers = []
                 indice = 0
-                while ((trovato is False) and (indice < len(partsList))):
-                    if (partsList[indice][0] == part_id):
+                while (trovato is False) and (indice < len(partsList)):
+                    if partsList[indice][0] == part_id:
                         peers = partsList[indice][2]
                         trovato = True
                     else:
@@ -866,22 +866,22 @@ def downloadFile(result, Session_ID, sTracker, sLock):
                 peer_index = random.randrange(0, len(peers))
                 peer_details = peers[peer_index]
 
-                if (debug is True):  print("[PEER] Random choosed to require the part " + str(part_id) + " to the peer",
-                                           peer_details)
+                if debug is True:  print("[PEER] Random choosed to require the part " + str(part_id) + " to the peer",
+                                         peer_details)
 
             finally:
                 partsLock.release()
 
             index = 0
             while True:
-                if (poolList[index].isBusy() is False):
+                if poolList[index].isBusy() is False:
                     poolList[index].assign(part_id, peer_details)
-                    if (debug is True): print("[PEER] Part " + str(part_id) + " assigned to PoolWorker " + str(index))
+                    if debug is True: print("[PEER] Part " + str(part_id) + " assigned to PoolWorker " + str(index))
                     break
                 else:
                     index += 1
 
-                if (index == pool_size):    index = 0  # gestione del pool "a buffer circolare"
+                if index == pool_size:    index = 0  # gestione del pool "a buffer circolare"
 
             assignedMask[part_id] = '1'
 
@@ -892,7 +892,7 @@ def downloadFile(result, Session_ID, sTracker, sLock):
 
             print("[PEER] Download progress: parts required", assignedMask.count('1'), "of", n_parts)
 
-            if ('0' not in assignedMask):
+            if '0' not in assignedMask:
                 break
             # if(assignedMask == ('1' * n_parts)): break  # se ho assegnato tutte le parti posso uscire da questo ciclo
 
@@ -911,7 +911,7 @@ def downloadFile(result, Session_ID, sTracker, sLock):
         dataFile.write(partFile.read())
         partFile.close()
         while True:
-            if (partLocked(md5, i) is False):
+            if partLocked(md5, i) is False:
                 break
         os.remove(os.path.join(script_dir, partName))
     dataFile.close()
@@ -1025,11 +1025,11 @@ def login(sock, sLock, config):
 
     print("[PEER] >" + data)
 
-    if (data[0:4] != "ALGI"):
+    if data[0:4] != "ALGI":
         print("[PEER] WARNING: received command " + data[0:4] + " when expecting ALGI.")
 
-    if (data[4:] == "0000000000000000"):
-        if (debug is True):  print("[PEER] Warning: received a all-zeroes SID.")
+    if data[4:] == "0000000000000000":
+        if debug is True:  print("[PEER] Warning: received a all-zeroes SID.")
     else:
         print("[PEER] INFO: Login performed successfully!")
 
@@ -1049,13 +1049,13 @@ def logout(sock, Session_ID, sLock, peerProxy):
 
     print("[PEER] >" + data)
 
-    if (data[0:4] == "NLOG"):
+    if data[0:4] == "NLOG":
         print("[PEER] Cannot perform the logout because tracker replied with an NLOG.")
-        if (debug is True):  print("[PEER] #partdown = " + data[4:])
+        if debug is True:  print("[PEER] #partdown = " + data[4:])
         return False
 
-    if (data[0:4] == "ALOG"):
-        if (debug is True):
+    if data[0:4] == "ALOG":
+        if debug is True:
             print("[PEER] Tracker's socket closed successfully.")
             print("[PEER] #partdown = " + data[4:])
         print("[PEER] Waiting 60 seconds.")
@@ -1063,7 +1063,7 @@ def logout(sock, Session_ID, sLock, peerProxy):
         peerProxy.disable()
 
         last_value = -1
-        while (getSending() > 0):
+        while getSending() > 0:
             if (
                     last_value != getSending()):  # in questo modo stampo la riga seguente solo quando il numero di invii cambia
                 last_value = getSending()  # altrimenti farei inutilmente flooding nel terminale
@@ -1094,31 +1094,31 @@ def partAcquire(md5, part_id):
 
 def partModify(md5, partId, inc):
     part_id = int(partId)
-    if (partUpdate(md5) is False):
+    if partUpdate(md5) is False:
         return False
 
     lockUseDict.acquire()
     locked = inUseDict[md5]  # MD5 = (-1,-1,-1,0,0,0,1,40,0,-1,0, ...) dove la lunghezza è n_parts
 
-    if (part_id not in range(0, len(locked))):
+    if part_id not in range(0, len(locked)):
         print("ERROR: partModify(" + str(md5) + ',' + str(part_id) + ',' + str(inc) + ") but there are only " + str(
             len(locked)) + " parts.")
         lockUseDict.release()
         return False
 
-    if (locked[part_id] == -1):
+    if locked[part_id] == -1:
         print("ERROR: partModify(" + str(md5) + ',' + str(part_id) + ',' + str(
             inc) + ") but i don't have this part (-1).")
         lockUseDict.release()
         return False
 
-    if ((inc != 1) and (inc != -1)):
+    if (inc != 1) and (inc != -1):
         print("ERROR: partModify(" + str(md5) + ',' + str(part_id) + ',' + str(
             inc) + ") but the inc_value must be '1' or '-1'.")
         lockUseDict.release()
         return False
 
-    if ((locked[part_id] == 0) and (int(inc) == 0)):
+    if (locked[part_id] == 0) and (int(inc) == 0):
         print("ERROR: partModify trying to release the part=" + str(part_id) + " but it's not locked.")
         lockUseDict.release()
         return False
