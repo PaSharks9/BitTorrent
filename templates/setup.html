@@ -47,31 +47,37 @@
     </div>
 {% endif %}
 
- <form role="form" method='POST' action="/setup">
-            <div class="form-group">
-                <table>
-                    <th>PARAM</th>
-                    <th style="text-align: center">PEER</th>
-                    <th>TRACKER</th>
-                    <tr>
-                        <td>IPV4</td>
-                        <td><input type="text" name="peer_ipv4" id="peer_ipv4" value={{ ipv4peer }}></td>
-                        <td><input type="text" name="tracker_ipv4" id="tracker_ipv4" value={{ ipv4tracker }}></td>
-                    </tr>
-                    <tr>
-                        <td>IPV6</td>
-                        <td><input type="text" name="peer_ipv6" id="peer_ipv6" value={{ ipv6peer }}></td>
-                        <td><input type="text" name="tracker_ipv6" id="tracker_ipv6" value={{ ipv6tracker }}></td>
-                    </tr>
-                    <tr>
-                        <td>PORTA</td>
-                        <td><input type="text" name="peer_port" id="peer_port" value={{ portpeer }}></td>
-                        <td><input type="text" name="tracker_port" id="tracker_port" value={{ porttracker }}></td>
-                    </tr>
-                </table>
-            </div>
-            </br>
-            <button type="submit">Applica!</button>
-        </form>
+    <form role="form" method='POST' action="/setup">
+        <div class="form-group">
+            <table>
+                <th>PARAM</th>
+                <th style="text-align: center">PEER</th>
+                <th>TRACKER</th>
+                <tr>
+                    <td>IPV4</td>
+                    <td><input type="text" name="peer_ipv4" id="peer_ipv4" value={{ ipv4peer }}></td>
+                    <td><input type="text" name="tracker_ipv4" id="tracker_ipv4" value={{ ipv4tracker }}></td>
+                </tr>
+                <tr>
+                    <td>IPV6</td>
+                    <td><input type="text" name="peer_ipv6" id="peer_ipv6" value={{ ipv6peer }}></td>
+                    <td><input type="text" name="tracker_ipv6" id="tracker_ipv6" value={{ ipv6tracker }}></td>
+                </tr>
+                <tr>
+                    <td>PORTA</td>
+                    <td><input type="text" name="peer_port" id="peer_port" value={{ portpeer }}></td>
+                    <td><input type="text" name="tracker_port" id="tracker_port" value={{ porttracker }}></td>
+                </tr>
+            </table>
+        </div>
+        </br>
+
+        {% if log == "true" %}
+            <button type="submit">Logout</button>
+        {% else %}
+            <button type="submit">Login</button>
+        {% endif %}
+
+    </form>
         <br>
 {% endblock %}

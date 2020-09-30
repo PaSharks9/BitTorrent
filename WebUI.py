@@ -1,7 +1,6 @@
 import socket, os
 from flask import Flask, render_template, request, redirect, url_for
 
-
 # from werkzeug import secure_filename
 
 
@@ -52,12 +51,9 @@ app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, "downloads")
 def logged():
     s.sendall("LOG?".encode('utf-8'))
     sid = recvUntil(s, '%').decode('utf-8')
-    if sid == "False":
-        print("SID: " + sid)
-        return False
-    else:
-        print("SID: " + sid)
-        return sid
+    
+    if sid == "False":  return False
+    else:               return sid
 
 
 @app.route("/")
@@ -91,34 +87,44 @@ def setup():
     if request.method == "GET":
         s.sendall("GETP".encode('utf-8'))
         data = recvUntil(s, "%").decode('utf-8')
+        
         sid = logged()
+        if (sid is False):
+            loggato = "false"
+        else:
+            loggato = "true"
+
         if data == "":
             return render_template('setup.html', ipv4peer="", ipv6peer="", portpeer="", ipv4tracker="", ipv6tracker="",
-                                   porttracker="", msg="y")
+                                   porttracker="", msg="y", log=loggato)
         else:  # se peer.py ha letto dei parametri dal file di configurazione allora li uso per pre-compilare i campi
             # da inserire
             lista = data.split(',')
             return render_template('setup.html', ipv4peer=lista[0], ipv6peer=lista[1], portpeer=lista[2],
-                                   ipv4tracker=lista[3], ipv6tracker=lista[4], porttracker=lista[5], log=sid)
+                                   ipv4tracker=lista[3], ipv6tracker=lista[4], porttracker=lista[5], log=loggato)
 
     if request.method == "POST":
-        data = "SETP" + str(request.form['peer_ipv4']) + ','
-        data = data + str(request.form['peer_ipv6']) + ','
-        data = data + str(request.form['peer_port']) + ','
-        data = data + str(request.form['tracker_ipv4']) + ','
-        data = data + str(request.form['tracker_ipv6']) + ','
-        data = data + str(request.form['tracker_port']) + '%'
+        if logged() is False:   # se non siamo già loggati
+            data = "SETP" + str(request.form['peer_ipv4']) + ','
+            data = data + str(request.form['peer_ipv6']) + ','
+            data = data + str(request.form['peer_port']) + ','
+            data = data + str(request.form['tracker_ipv4']) + ','
+            data = data + str(request.form['tracker_ipv6']) + ','
+            data = data + str(request.form['tracker_port']) + '%'
 
-        s.sendall(data.encode('utf-8'))
-        data = recvUntil(s, "%").decode('utf-8')
+            s.sendall(data.encode('utf-8'))
+            data = recvUntil(s, "%").decode('utf-8')
         
-        s.sendall("LOGI".encode('utf-8'))
-        data = recvUntil(s, "%").decode('utf-8')
+            s.sendall("LOGI".encode('utf-8'))
+            data = recvUntil(s, "%").decode('utf-8')
         
-        if data == "0000000000000000" or data == "ERR":
-            return render_template('error.html', code=data)
-        else:
-            return redirect("/")
+            if data == "0000000000000000" or data == "ERR":
+                return render_template('error.html', code=data)
+            else:
+                return redirect("/")
+
+        else:   # se siamo già loggati allora stiamo chiedendo il logout
+            return redirect("/logout")
         
 
 @app.route("/search", methods=['GET', 'POST'])
