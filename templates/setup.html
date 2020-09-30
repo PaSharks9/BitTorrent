@@ -50,9 +50,11 @@
     <form role="form" method='POST' action="/setup">
         <div class="form-group">
             <table>
-                <th>PARAM</th>
-                <th style="text-align: center">PEER</th>
-                <th>TRACKER</th>
+                <tr>
+                    <th>PARAM</th>
+                    <th style="text-align: center">PEER</th>
+                    <th>TRACKER</th>
+                </tr>
                 <tr>
                     <td>IPV4</td>
                     <td><input type="text" name="peer_ipv4" id="peer_ipv4" value={{ ipv4peer }}></td>
@@ -70,7 +72,7 @@
                 </tr>
             </table>
         </div>
-        </br>
+        <br>
 
         {% if log == "true" %}
             <button type="submit">Logout</button>
