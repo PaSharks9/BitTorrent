@@ -86,16 +86,6 @@ class webTalker(threading.Thread):
         self.peerProxy = None
         self.logged = False
 
-        # Trovo una porta libera
-        while self.webPort < 65636:
-            try:
-                self.webSocket.bind((self.webHost, self.webPort))
-                break
-            except:
-                self.webPort = self.webPort + 1
-
-        self.webSocket.listen(1)  # Mi pongo in ascolto
-        print("INFO: Please connect the WebInterface to the port ", self.webPort)
         self.webConnection, self.webAddress = self.webSocket.accept()  # Aspetto che l'interfaccia web si connetta
         self.webSocket.close()
 

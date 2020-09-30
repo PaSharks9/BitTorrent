@@ -1,6 +1,6 @@
-import socket, os
-from flask import Flask, render_template, request, redirect, url_for
+import socket, os, ipaddress
 
+from flask import Flask, render_template, request, redirect, url_for
 
 # from werkzeug import secure_filename
 
@@ -52,12 +52,9 @@ app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, "downloads")
 def logged():
     s.sendall("LOG?".encode('utf-8'))
     sid = recvUntil(s, '%').decode('utf-8')
-    if sid == "False":
-        print("SID: " + sid)
-        return False
-    else:
-        print("SID: " + sid)
-        return sid
+    
+    if sid == "False":  return False
+    else:               return sid
 
 
 @app.route("/")
@@ -91,40 +88,86 @@ def setup():
     if request.method == "GET":
         s.sendall("GETP".encode('utf-8'))
         data = recvUntil(s, "%").decode('utf-8')
+        
         sid = logged()
+        if (sid is False):
+            loggato = "false"
+        else:
+            loggato = "true"
+
         if data == "":
             return render_template('setup.html', ipv4peer="", ipv6peer="", portpeer="", ipv4tracker="", ipv6tracker="",
-                                   porttracker="", msg="y")
+                                   porttracker="", msg="y", log=loggato)
         else:  # se peer.py ha letto dei parametri dal file di configurazione allora li uso per pre-compilare i campi
             # da inserire
             lista = data.split(',')
             return render_template('setup.html', ipv4peer=lista[0], ipv6peer=lista[1], portpeer=lista[2],
-                                   ipv4tracker=lista[3], ipv6tracker=lista[4], porttracker=lista[5], log=sid)
+                                   ipv4tracker=lista[3], ipv6tracker=lista[4], porttracker=lista[5], log=loggato)
 
     if request.method == "POST":
-        data = "SETP" + str(request.form['peer_ipv4']) + ','
-        data = data + str(request.form['peer_ipv6']) + ','
-        data = data + str(request.form['peer_port']) + ','
-        data = data + str(request.form['tracker_ipv4']) + ','
-        data = data + str(request.form['tracker_ipv6']) + ','
-        data = data + str(request.form['tracker_port']) + '%'
+        if logged() is False:   # se non siamo già loggati
 
-        s.sendall(data.encode('utf-8'))
-        data = recvUntil(s, "%").decode('utf-8')
-        return redirect('/login')
+            peer_v4      = str(request.form['peer_ipv4'])
+            peer_v6      = str(request.form['peer_ipv6'])
+            peer_port    = str(request.form['peer_port'])
+            tracker_v4   = str(request.form['tracker_ipv4'])
+            tracker_v6   = str(request.form['tracker_ipv6'])
+            tracker_port = str(request.form['tracker_port'])
 
+            # Eseguo il controllo sintattico dei parametri che mi arrivano dal form html
+            try:
+                ipaddress.ip_address(peer_v4)
+            except ValueError:
+                peer_v4 = ""
 
-@app.route("/login")
-def login():
-    s.sendall("LOGI".encode('utf-8'))
-    data = recvUntil(s, "%").decode('utf-8')
-    if data == "0000000000000000":
-        return redirect('/')
-    elif data == "ERR":
-        return redirect('/')
-    else:
-        return redirect('/')
+            try:
+                ipaddress.ip_address(peer_v6)
+            except ValueError:
+                peer_v6 = ""
 
+            try:
+                if(int(peer_port) > 65535) or (int(peer_port) < 0): # oltre al test sul valore numerico c'è anche il test (implicito) che sia un valore numerico grazie alla funzione int()
+                    peer_port = ""   
+            except ValueError:
+                peer_port = ""
+
+            try:
+                ipaddress.ip_address(tracker_v4)
+            except ValueError:
+                tracker_v4 = ""
+
+            try:
+                ipaddress.ip_address(tracker_v6)
+            except ValueError:
+                tracker_v6 = ""
+
+            try:
+                if(int(tracker_port) > 65535) or (int(tracker_port) < 0): # oltre al test sul valore numerico c'è anche il test (implicito) che sia un valore numerico grazie alla funzione int()
+                    tracker_port = ""   
+            except ValueError:
+                tracker_port = ""
+
+            # Se almeno uno dei parametri è stato reso "" dai controlli allora devo rimandare l'utente alla pagina /setup vuotando i campi (sintatticamente) errati
+            if(peer_v4 == "") or (peer_v6 == "") or (peer_port == "") or (tracker_v4 == "") or (tracker_v6 == "") or (tracker_port == ""):
+                return render_template('setup.html', ipv4peer=peer_v4, ipv6peer=peer_v6, portpeer=peer_port, ipv4tracker=tracker_v4, ipv6tracker=tracker_v6, porttracker=tracker_port, log="false")
+
+            # Se siamo arrivati qui allora il controllo sintattico dei parametri è andato a buon fine quindi possiamo procedere.
+            data = "SETP" + peer_v4 + ',' + peer_v6 + ',' + peer_port + ',' + tracker_v4 + ',' + tracker_v6 + ',' + tracker_port + '%'
+
+            s.sendall(data.encode('utf-8'))
+            data = recvUntil(s, "%").decode('utf-8')
+        
+            s.sendall("LOGI".encode('utf-8'))
+            data = recvUntil(s, "%").decode('utf-8')
+        
+            if data == "0000000000000000" or data == "ERR":
+                return render_template('error.html', code=data)
+            else:
+                return redirect("/")
+
+        else:   # se siamo già loggati allora stiamo chiedendo il logout
+            return redirect("/logout")
+        
 
 @app.route("/search", methods=['GET', 'POST'])
 def search():
