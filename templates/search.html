@@ -29,33 +29,32 @@
   <button type="submit" class="btn btn-primary mb-2">Cerca!</button>
 </form>
 <div style="margin-top: 50px; text-align: center; ">
-  <label for="downloadedFileTable"> <h2 style="color: red">File condivisi nel Sistema </h2> </label>
-  <table id="downloadedFileTable"style="width:100%">
-    <tr>
-        <th>Md5 file</th>
-        <th>Descrizione</th>
-        <th>Dimensione file</th>
-        <th>Dimensione parti</th>
-    </tr>
-      {% if data is not none %}
-        {% for element in data %}
-        <tr>
-          <td>{{ data[ loop.index0 * 4 + 1  ] }}</td>
-          <td>{{ data[ loop.index0 * 4 + 2  ] }}</td>
-          <td>{{ data[ loop.index0 * 4 + 3  ] }}</td>
-          <td></td>
-        </tr>
-        {% endfor %}
-      {% else %}
+    <label for="downloadedFileTable"></label>
+    <h2 style="color: red">File condivisi nel Sistema </h2>
+
+    {% if data is not none %}
+        <table id="downloadedFileTable" style="width:100%">
+            <tr>
+                <th>Md5 file</th>
+                <th>Descrizione</th>
+                <th>Dimensione file</th>
+                <th>Dimensione parti</th>
+                <th></th>
+            </tr>
+
+            {% for element in data %}
+            <tr>
+                <td>{{ element[0] }}</td>
+                <td>{{ element[1] }}</td>
+                <td>{{ element[2] }}</td>
+                <td>{{ element[3] }}</td>
+                <td><a href="/download.html?md5={{ element[0] }}&name{{ element[1] }}=&size{{ element[2] }}=&part={{ element[3] }}">Download!</a></td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% else %}
         <p> Il file cercato non è al momento condiviso da nessun peer!</p>
-        <tr>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-        </tr>
-      {% endif %}
-  </table>
+    {% endif %}
 </div>
 
 {% endblock %}
