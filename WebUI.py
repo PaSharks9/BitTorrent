@@ -82,7 +82,8 @@ def homepage():
                 dataLists.append(fileInfo.remove(''))
             else:
                 dataLists.append(fileInfo)
-        # print(dataLists)
+        print("sid: " + str(sid))
+        print("dati: " + str(dataLists))
     return render_template('home.html', data=dataLists, sid=sid)
 
 

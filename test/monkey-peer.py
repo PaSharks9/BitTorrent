@@ -230,6 +230,35 @@ class webTalker(threading.Thread):
             elif data == "HOME":
                 data = "abcdefghiasmckaldkfideldlsopie32|100|5|10"
 
+            elif data == "FIND":
+                print("[MONKEY-PEER] RICEVUTO DAL WEB:" + data)
+                monkeyDict = {'helmet': ('e11f7b6e50eb65e311a591a244210c69', 'helmet', 100, 10),
+                              'mandarino': ('mandarinoeb65r311a591a2f421ac64', 'mandarino', 1000, 100),
+                              'cane': ('012345678912345678912', 'sally', 40, 20)
+                              }
+                # Leggo la chiave da ricercare (già formattata a 20 caratteri da WebUI)
+                data = recvExact(self.webConnection, 20)
+                data = data.decode('utf-8')
+
+                # File_md5_i[32B].File_name_i[100B].len_file[10B].len_part[6B]
+                keyword = data.strip()
+                result = []
+                if keyword == "*":
+                    for key in monkeyDict.keys():
+                        result.append(monkeyDict[key])
+                else:
+                    tuplaResult = monkeyDict[keyword]
+                    if tuplaResult is not None:
+                        result.append(tuplaResult)
+
+                data = ""
+                if len(result) > 0:  # Se ci sono risultati converto la lista in formato CSV
+                    for index in range(0, len(result)):
+                        data = data + result[index][0] + ','
+                        data = data + result[index][1] + ','
+                        data = data + str(result[index][2]) + ','
+                        data = data + str(result[index][3]) + ','
+
             elif data == "UPLD":
                 data = recvUntil(self.webConnection, '%').decode('utf-8')
                 lista = data.split(',')
