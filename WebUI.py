@@ -5,7 +5,6 @@ from flask import Flask, render_template, request, redirect, url_for
 
 # from werkzeug import secure_filename
 
-
 # Funzione che consente di avere una ricezione di esattamente n_bytes
 def recvExact(miaSocket, n_bytes):
     rimanenti = n_bytes

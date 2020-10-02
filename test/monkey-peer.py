@@ -1,94 +1,14 @@
 #!/usr/bin/env python3
 
 # ########################################### LIBRERIE ############################################
-import hashlib
-import ipaddress
+
 import os
-import random
 import socket
-import sys
 import threading
-import time
-import v4v6
 
 # ########################################### Utilities ############################################
 script_dir = os.path.dirname(__file__)  # E' il path dove si trova questo script
 debug = False
-lockSending = threading.Lock()
-lockSocket = threading.Lock()
-lockSharedDict = threading.Lock()
-
-
-def logout(sock, Session_ID, sLock, peerProxy):
-    msg = "LOGO" + Session_ID
-    print("[PEER] <" + msg)
-
-    sLock.acquire()
-
-    sock.sendall(msg.encode('utf-8'))
-    data = recvExact(sock, 14).decode('utf-8')
-
-    sLock.release()
-
-    print("[PEER] >" + data)
-
-    if (data[0:4] == "NLOG"):
-        print("[PEER] Cannot perform the logout because tracker replied with an NLOG.")
-        if (debug is True):  print("[PEER] #partdown = " + data[4:])
-        return False
-
-    if (data[0:4] == "ALOG"):
-        if (debug is True):
-            print("[PEER] Tracker's socket closed successfully.")
-            print("[PEER] #partdown = " + data[4:])
-        print("[PEER] Waiting 60 seconds.")
-        time.sleep(60)
-        peerProxy.disable()
-
-        last_value = -1
-        while (getSending() > 0):
-            if (
-                    last_value != getSending()):  # in questo modo stampo la riga seguente solo quando il numero di invii cambia
-                last_value = getSending()  # altrimenti farei inutilmente flooding nel terminale
-                print("[PEER] " + str(last_value) + " sending left before perform the logout. Please wait...")
-
-        try:
-            sock.shutdown(socket.SHUT_RDWR)
-            sock.close()
-        except:
-            print("[PEER] WARNING: Error when trying to close peer2tracker socket.")
-            print("[PEER] Logout performed with some warning.")
-            return True
-
-        print("[PEER] All sendings completed. Now you are logged out.")
-        return True
-
-    print("[PEER] Warning: received " + data[0:4] + " when expecting an NLOG or ALOG. Please check the tracker. Abort.")
-    return False
-
-
-def login(sock, sLock, config):
-    msg = "LOGI" + config["peer_ips"] + str(config["peer_port"]).zfill(5)
-    print("[PEER] <" + msg)
-
-    sLock.acquire()
-
-    sock.sendall(msg.encode('utf-8'))
-    data = recvExact(sock, 20).decode('utf-8')
-
-    sLock.release()
-
-    print("[PEER] >" + data)
-
-    if data[0:4] != "ALGI":
-        print("[PEER] WARNING: received command " + data[0:4] + " when expecting ALGI.")
-
-    if data[4:] == "0000000000000000":
-        if debug is True:  print("[PEER] Warning: received a all-zeroes SID.")
-    else:
-        print("[PEER] INFO: Login performed successfully!")
-
-    return data[4:]
 
 
 def clear():
@@ -101,11 +21,6 @@ def clear():
 def getch():
     input("Press any key to continue...")
     return
-
-
-def getSending():
-    global sending
-    return sending
 
 
 def recvExact(miaSocket, n_bytes):
@@ -238,12 +153,25 @@ class webTalker(threading.Thread):
                 data = "e11f7b6e50eb65e311a591a244210c69,100"
 
             elif data == "LOGI":
+                print("[MONKEY-PEER] RICEVUTO DAL WEB:" + data)
                 self.sid = "0123456789123456"
                 if self.sid != "0000000000000000" and self.sid != "":
                     self.logged = True
                     data = str(self.sid)
                 else:
                     data = "ERR"
+
+            elif data == "LOGO":
+                print("[MONKEY-PEER] RICEVUTO DAL WEB:" + data)
+                if self.logged:
+                    data = "OK"
+                else:
+                    data = "false"
+
+            elif data == "DOWN":
+                print("[MONKEY-PEER] RICEVUTO DAL WEB:" + data)
+                data = recvUntil(self.webConnection, '%').decode('utf-8')
+                print("Data ricevuti: " + data)
 
             data = data + "%"  # Uso il simbolo % come terminatore del messaggio (dall'altra parte leggerò finché non
             # lo trovo)
