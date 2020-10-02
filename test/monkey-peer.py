@@ -108,14 +108,6 @@ def getSending():
     return sending
 
 
-def updateSending(inc):
-    global sending
-    lockSending.acquire()
-    sending += int(inc)
-    lockSending.release()
-    return
-
-
 def recvExact(miaSocket, n_bytes):
     rimanenti = n_bytes
     letto = b""
@@ -144,27 +136,6 @@ def recvUntil(miaSocket, pattern):
     return letto
 
 
-def saveConfiguration(actualConfig):
-    rel_path = "peerConfiguration.csv"
-    file_name = os.path.join(script_dir, rel_path)
-
-    data_csv = ""
-    for value in actualConfig.values():
-        data_csv += str(value) + ','
-
-    data_csv = data_csv[:-1]
-
-    try:
-        mioFile = open(file_name, "wt")
-    except:
-        print("INFO: Problemi nella scrittura del file di configurazione!")
-        return None
-
-    mioFile.write(data_csv)
-    mioFile.close()
-    return True
-
-
 class webTalker(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
@@ -175,7 +146,6 @@ class webTalker(threading.Thread):
         self.webSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.webConnection = None
         self.webAddress = None
-        print("INFO: Please connect the WebInterface to the port ", self.webPort)
         self.webAddress = None
         self.sTracker = None
         self.config = {}
@@ -230,8 +200,6 @@ class webTalker(threading.Thread):
             elif data == "HOME":
                 data = "abcdefghiasmckaldkfideldlsopie32|100|5|10"
 
-<<<<<<< HEAD
-=======
             elif data == "FIND":
                 print("[MONKEY-PEER] RICEVUTO DAL WEB:" + data)
                 monkeyDict = {'helmet': ('e11f7b6e50eb65e311a591a244210c69', 'helmet', 100, 10),
@@ -260,12 +228,14 @@ class webTalker(threading.Thread):
                         data = data + result[index][1] + ','
                         data = data + str(result[index][2]) + ','
                         data = data + str(result[index][3]) + ','
+                if data[-1] == ',':
+                    data = data[:-1]
 
->>>>>>> develop
             elif data == "UPLD":
+                print("[MONKEY-PEER] RICEVUTO DAL WEB:" + data)
                 data = recvUntil(self.webConnection, '%').decode('utf-8')
-                lista = data.split(',')
-                # data = addFile(self.sTracker, sid, lockSocket, sharedDict, lista[0], lista[1], self.config)
+                print("[MONKEY-PEER] Data ricevuti: " + data)
+                data = "e11f7b6e50eb65e311a591a244210c69,100"
 
             elif data == "LOGI":
                 self.sid = "0123456789123456"

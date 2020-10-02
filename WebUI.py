@@ -67,7 +67,6 @@ def homepage():
     sid = logged()
     if sid is False:
         return redirect("/setup")
-        # return render_template('home.html', sid=sid)
 
     s.sendall("HOME".encode('utf-8'))
     data = recvUntil(s, "%").decode('utf-8')
@@ -82,12 +81,9 @@ def homepage():
                 dataLists.append(fileInfo.remove(''))
             else:
                 dataLists.append(fileInfo)
-<<<<<<< HEAD
         # print(dataLists)
-=======
         print("sid: " + str(sid))
         print("dati: " + str(dataLists))
->>>>>>> develop
     return render_template('home.html', data=dataLists, sid=sid)
 
 
@@ -263,9 +259,7 @@ def logout():
 @app.route("/download", methods=['GET'])
 def download():
     if logged() is False:
-        return redirect('/login')
-    if logged() is False:
-        return redirect("/setup")
+        return redirect('/setup')
 
     data = "DOWN" + request.args.get('md5') + ',' + request.args.get('name') + ',' + str(
         request.args.get('size')) + ',' + str(request.args.get('part')) + "%"

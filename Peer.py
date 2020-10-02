@@ -608,14 +608,10 @@ def addFile(sock, Session_ID, sLock, sharedDict, file_name, file_description, co
     else:  # se "fileDescription" ha almeno 100 caratteri
         fileDescription = file_description[0:100]  # prendo i primi 100 caratteri
 
-<<<<<<< HEAD
     size = len(fileData)
-    if size > 9999999999:
-=======
     size = len(fileMd5)
     print("lunghezza data: " + str(size))
     if (size > 9999999999):
->>>>>>> develop
         return "FTB"  # Filesize must fit into 10B, so this file it's too big. Abort.")
 
     # parts_min = (size // 999999) + 1 # la dimensione di ciascuna parte dev'essere contenibile in 6B
