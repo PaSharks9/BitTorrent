@@ -196,16 +196,6 @@ class webTalker(threading.Thread):
                         data = data + str(risultati[index][2]) + ','
                         data = data + str(risultati[index][3]) + ','
 
-                risultati = searchFile(self.sTracker, sid, lockSocket, data)
-
-                data = ""
-                if risultati is not None:  # Se ci sono risultati converto la lista in formato CSV
-                    for index in range(0, len(risultati)):
-                        data = data + risultati[index][0] + ','
-                        data = data + risultati[index][1] + ','
-                        data = data + str(risultati[index][2]) + ','
-                        data = data + str(risultati[index][3]) + ','
-
             elif data == "DOWN":
                 data = recvUntil(self.webConnection, '%')
                 data = data.decode('utf-8')
