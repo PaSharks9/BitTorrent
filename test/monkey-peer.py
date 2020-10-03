@@ -116,7 +116,7 @@ class webTalker(threading.Thread):
                 data = "abcdefghiasmckaldkfideldlsopie32|100|5|10"
 
             elif data == "FIND":
-                print("[MONKEY-PEER] RICEVUTO DAL WEB:" + data)
+                print("[MONKEY-PEER] -FIND- ")
                 monkeyDict = {'helmet': ('e11f7b6e50eb65e311a591a244210c69', 'helmet', 100, 10),
                               'mandarino': ('mandarinoeb65r311a591a2f421ac64', 'mandarino', 1000, 100),
                               'cane': ('012345678912345678912', 'sally', 40, 20)
@@ -147,13 +147,13 @@ class webTalker(threading.Thread):
                     data = data[:-1]
 
             elif data == "UPLD":
-                print("[MONKEY-PEER] RICEVUTO DAL WEB:" + data)
+                print("[MONKEY-PEER] -UPLD- ")
                 data = recvUntil(self.webConnection, '%').decode('utf-8')
                 print("[MONKEY-PEER] Data ricevuti: " + data)
                 data = "e11f7b6e50eb65e311a591a244210c69,100"
 
             elif data == "LOGI":
-                print("[MONKEY-PEER] RICEVUTO DAL WEB:" + data)
+                print("[MONKEY-PEER] -LOGI-")
                 self.sid = "0123456789123456"
                 if self.sid != "0000000000000000" and self.sid != "":
                     self.logged = True
@@ -162,14 +162,14 @@ class webTalker(threading.Thread):
                     data = "ERR"
 
             elif data == "LOGO":
-                print("[MONKEY-PEER] RICEVUTO DAL WEB:" + data)
+                print("[MONKEY-PEER] -LOGO-")
                 if self.logged:
                     data = "OK"
                 else:
                     data = "false"
 
             elif data == "DOWN":
-                print("[MONKEY-PEER] RICEVUTO DAL WEB:" + data)
+                print("[MONKEY-PEER] -DOWN-")
                 data = recvUntil(self.webConnection, '%').decode('utf-8')
                 print("Data ricevuti: " + data)
 

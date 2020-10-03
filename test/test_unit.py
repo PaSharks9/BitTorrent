@@ -94,7 +94,7 @@ class HomePageTests(unittest.TestCase):
 
     def test_a5_download(self):
         print("\n- Test Download")
-        response = self.app.get("/download", follow_redirects=False)
+        response = self.app.post("/download", follow_redirects=False)
         self.assertEqual(response.status_code, 302, "Errore, codice http di ritorno sbagliato")
         self.assertEqual(response.location, 'http://localhost/setup',
                          "Errore, non si è stati reindirizzati correttamente")
@@ -201,7 +201,7 @@ class HomePageTests(unittest.TestCase):
             assert len(templates) == 1, "Errore, più templates per una stessa chiamata"
             template, context = templates[0]
             # Verifico che i dati vengano splittati correttamente
-            self.assertEqual(context['data'], ["e11f7b6e50eb65e311a591a244210c69", "helmet", '100', '10'])
+            self.assertEqual(context['data'], [["e11f7b6e50eb65e311a591a244210c69", "helmet", '100', '10']])
             self.assertEqual(response.status_code, 200, "1)Il codice http ritornato non è 200")
 
         print("\t\t2) Ricerca di tutti i file tramite '*': ")
@@ -239,8 +239,11 @@ class HomePageTests(unittest.TestCase):
 
     def test_b5_download(self):
         print("\n- Test Download")
-        response = self.app.post('/download', md5="e11f7b6e50eb65e311a591a244210c69", name="helmet", size="100",
-                                 part="10")
+        payload = {'md5': 'e11f7b6e50eb65e311a591a244210c69',
+                   'descrizione': 'helmet',
+                   'dimFile': 100,
+                   'dimParti': 10}
+        response = self.app.post('/download', data=payload, follow_redirects=False)
         self.assertEqual(response.status_code, 200)
 
 

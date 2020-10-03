@@ -199,9 +199,22 @@ def search():
 
         s.sendall(searchKey.encode('utf-8'))
         temp = recvUntil(s, "%").decode('utf-8')
-        print("temp: ", temp)
         risultati = temp.split(',')  # da formato CSV restituisce una lista
-        return render_template('search.html', data=risultati, sid=logged())
+        print("risultati: " + str(risultati))
+        res = []
+        part = []
+        i = 0
+        for el in risultati:
+            if i < 3:
+                part.append(el)
+                i += 1
+            else:
+                i = 0
+                part.append(el)
+                res.append(part)
+                part = []
+
+        return render_template('search.html', data=res, sid=logged())
 
 
 @app.route("/upload", methods=['GET', 'POST'])
@@ -255,17 +268,16 @@ def logout():
         return "Logout failed."
 
 
-@app.route("/download", methods=['GET'])
+@app.route("/download", methods=['POST'])
 def download():
     if logged() is False:
+        # print("Dentro logged() is false")
         return redirect('/setup')
-
-    data = "DOWN" + request.args.get('md5') + ',' + request.args.get('name') + ',' + str(
-        request.args.get('size')) + ',' + str(request.args.get('part')) + "%"
-
+    data = "DOWN" + request.form['md5'] + ',' + request.form['descrizione'] + ',' + str(
+        request.form['dimFile']) + ',' + str(request.form['dimParti']) + "%"
     s.sendall(data.encode('utf-8'))
-
-    return render_template('download.html')
+    data = recvUntil(s, "%").decode('utf-8')
+    return render_template('download.html', nome=request.form['descrizione'])
 
 
 def kill():
