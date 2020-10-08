@@ -55,9 +55,9 @@ class webTalker(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
         self.killed = False
-        self.webHost = '127.0.0.1'  # Accetto solo connessioni da localhost (modificandolo è possibile agganciarsi ad
+        self.webHost = '127.0.0.1'  # Accetto solo connessioni da localhost (modificandolo e possibile agganciarsi ad
         # una macchina distinta
-        self.webPort = 3001  # La porta sarà incrementata fino a trovare la prima libera
+        self.webPort = 3001  # La porta sara incrementata fino a trovare la prima libera
         self.webSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.webConnection = None
         self.webAddress = None
@@ -105,7 +105,7 @@ class webTalker(threading.Thread):
                 data = "SAVD"
 
             # Ricevuto dalla funzione logged() di webUI, chiede se siamo loggati
-            # Fino a quando non arriva un LOGI il sid è sloggato, una volta fatto il logi si da un sid da loggato
+            # Fino a quando non arriva un LOGI il sid e sloggato, una volta fatto il logi si da un sid da loggato
             elif data == "LOG?":
                 if self.logged is True:
                     data = self.sid
@@ -121,7 +121,7 @@ class webTalker(threading.Thread):
                               'mandarino': ('mandarinoeb65r311a591a2f421ac64', 'mandarino', 1000, 100),
                               'cane': ('012345678912345678912', 'sally', 40, 20)
                               }
-                # Leggo la chiave da ricercare (già formattata a 20 caratteri da WebUI)
+                # Leggo la chiave da ricercare (gia formattata a 20 caratteri da WebUI)
                 data = recvExact(self.webConnection, 20)
                 data = data.decode('utf-8')
 
@@ -173,7 +173,7 @@ class webTalker(threading.Thread):
                 data = recvUntil(self.webConnection, '%').decode('utf-8')
                 print("Data ricevuti: " + data)
 
-            data = data + "%"  # Uso il simbolo % come terminatore del messaggio (dall'altra parte leggerò finché non
+            data = data + "%"  # Uso il simbolo % come terminatore del messaggio (dall'altra parte leggero finche non
             # lo trovo)
             self.webConnection.sendall(data.encode('utf-8'))
 

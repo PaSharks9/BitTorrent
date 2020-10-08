@@ -23,8 +23,8 @@ sharedFileDict = {}
 def buildFileMask(nPart):
     maskList = []
     resto = nPart % 8
-    # Se il resto è > 0 allora  significa che una parte della maschera non sarà composta da soli 1 ma da anche degli 0
-    # Ricordando che il LSB è a sx la parte della maschera in cui ci saranno gli 0 parte sempre da sx
+    # Se il resto e > 0 allora  significa che una parte della maschera non sara composta da soli 1 ma da anche degli 0
+    # Ricordando che il LSB e a sx la parte della maschera in cui ci saranno gli 0 parte sempre da sx
     if resto > 0:
         nMask = (nPart // 8) + 1
         restMask = []
@@ -138,12 +138,12 @@ def selectAction(Select, StartFlag, LoggedPeerFlag, SharedFileFlag):
 # Messages Function
 
 def loginTracker(cIp, cPort):
-    # Controllo se il peer è già loggato
+    # Controllo se il peer e gia loggato
     for sessionId in sessionDict:
         if sessionDict[sessionId][0] == cIp and sessionDict[sessionId][1] == cPort:
             return "ALGI" + sessionId
     # Se siamo arrivati qui significa che il peer non era precedentemente gia loggato
-    # Controllo che il SID generato non sia già stato generato e associato ad un altro peer
+    # Controllo che il SID generato non sia gia stato generato e associato ad un altro peer
     while True:
         try:
             sessionId = idGenerator()
@@ -179,18 +179,18 @@ def logoutPeer(sid):
             print("len(downloadedMask): ", str(len(downloadedMask)))
             print("downloadedMask: ", downloadedMask)
             countBit = 0
-            # INDEX = ogni parte di cui è composto il file
+            # INDEX = ogni parte di cui e composto il file
             for index in range(len(downloadedMask)):
                 # INDEXBIT = ogni bit della singola parte
                 for indexBit in range(8):
                     if countBit <= int(nPart):
                         if maskList[index][indexBit] == 1:
                             partOwn += 1
-                            # Se masklist con gli stessi indici è 1 , la relativa downloadedMask a quei indici deve per forza essere almeno a 1
+                            # Se masklist con gli stessi indici e 1 , la relativa downloadedMask a quei indici deve per forza essere almeno a 1
                             if downloadedMask[index][indexBit] < 1:
                                 nLogFlag = True
                             else:
-                                # significa che altri l'hanno scaricato e questo peer può aver fatto da sorgente
+                                # significa che altri l'hanno scaricato e questo peer puo aver fatto da sorgente
                                 partDown += 1
 
                                 downloadedMask[index][indexBit] = downloadedMask[index][indexBit] - 1
@@ -202,7 +202,7 @@ def logoutPeer(sid):
                 sharedFileInfo[5].pop(sid)
             sharedFileInfo[4] = downloadedMask
             sharedFileDict.update({md5: sharedFileInfo})
-    # Se nLogFlag è True significa che il file non è patrimonio del sistema e quindi il peer non si può sloggare
+    # Se nLogFlag e True significa che il file non e patrimonio del sistema e quindi il peer non si puo sloggare
 
     if nLogFlag is True:
         return "NLOG" + str(partDown).zfill(10)
@@ -292,7 +292,7 @@ def updateFilePart(sid, md5, partNum):
     # Tiro fuori le info relative all'md5 in considerazione
     sharedFileInfo = sharedFileDict.pop(md5)
 
-    # tiro fuori il dizionario dei peer che condividono una o più parti di questo file ,
+    # tiro fuori il dizionario dei peer che condividono una o piu parti di questo file ,
     # la downloadMask e il numero delle parti
     nPart = int(sharedFileInfo[2])
     downloadMask = sharedFileInfo[4]
@@ -300,16 +300,16 @@ def updateFilePart(sid, md5, partNum):
 
     if partNum > nPart:
         if debug:
-            print("[update]: Il partNum è maggiore delle nPart")
+            print("[update]: Il partNum e maggiore delle nPart")
         return "APAD" + "-0000001"
 
     # Calcolo gli indici sulla maschera che rappresentano il partNum da aggiornare
     indexMask = (partNum // 8)
     bitIndex = (partNum % 8)
 
-    # Se il sid non è presente, creo una maschera di 0 , l'associo al sid e l'aggiungo al dizionario
+    # Se il sid non e presente, creo una maschera di 0 , l'associo al sid e l'aggiungo al dizionario
     if sid not in sharingPeers:
-        # Il sid non è presente quindi vuol dire che questo file ha scaricato la prima parte del file
+        # Il sid non e presente quindi vuol dire che questo file ha scaricato la prima parte del file
         newMask = []
         nPartMask = nPart // 8
         restMask = nPart % 8
@@ -318,7 +318,7 @@ def updateFilePart(sid, md5, partNum):
         # Creo una maschera di soli zeri
         for index in range(nPartMask):
             newMask.append([0, 0, 0, 0, 0, 0, 0, 0])
-        # Aggiungo tra gli sharingPeers del file la nuova maschera di 0 , sulla quale andrò a settare la parte
+        # Aggiungo tra gli sharingPeers del file la nuova maschera di 0 , sulla quale andro a settare la parte
         # che il peer mi ha indicato di aver scaricato,
         # in questo modo ho aggiornato i peers che possiedono parti di questo file
         sharingPeers.update({sid: newMask})
@@ -410,10 +410,10 @@ class trackerServerThread(threading.Thread):
         # Come prima cosa del Run mi metto in ascolto aspettando un LOGI
         # CONTROLLARE I due WHILE self.Logged SE IN QUESTA CONFIGURAZIONE POSSONO FUNZIONARE
         while self.Logged is False:
-            # Se sono qui significa che la socket è aperta e mi metto in ascolto
+            # Se sono qui significa che la socket e aperta e mi metto in ascolto
             self.typeMessage = recvExact(self.cSocket, 4).decode('utf-8')
 
-            # Se nessun client è loggato su questo thread l'unica cosa che posso elaborare è una LOGI
+            # Se nessun client e loggato su questo thread l'unica cosa che posso elaborare e una LOGI
             if self.typeMessage == "LOGI":
                 # Ricezione messaggio e spacchettamento
                 self.message = recvExact(self.cSocket, 60).decode('utf-8')
@@ -473,9 +473,9 @@ class trackerServerThread(threading.Thread):
                         print("-" * 107)
                     continue
 
-                # Se il typeMessage non è una LOGI allora processo finalmente la richiesta
+                # Se il typeMessage non e una LOGI allora processo finalmente la richiesta
                 # Tiro fuori il SID per effettuare il controllo sul login.
-                # Teoricamente in questo ciclo non si può entrare se il peer non è loggato,
+                # Teoricamente in questo ciclo non si puo entrare se il peer non e loggato,
                 # il controllo lo faccio comunque per sicurezza
                 sid = recvExact(self.cSocket, 16).decode('utf-8')
 
@@ -512,7 +512,7 @@ class trackerServerThread(threading.Thread):
                         maskList = buildFileMask(int(nPart))
 
                         # sharedDictFile= {md5: [fileName,lenFile,nPart,lenPart, downloadMask, {sid1: masklist, sid2: masklist2, sid3: masklist3}], md5_2:(..)}
-                        # Controllo se il file è gia presente nel dizionario
+                        # Controllo se il file e gia presente nel dizionario
                         trackerLock.acquire()
                         if md5 in sharedFileDict:
                             print("The file you want to add is already present. Updating the information..")
@@ -524,7 +524,7 @@ class trackerServerThread(threading.Thread):
                             sharedFileDict[md5] = fileTuple
                         else:
                             # Creo una nuova tupla con i nuovi dati
-                            # se l'md5 non è presente nel dizionario inserisco direttamente newTuple nel dizionario
+                            # se l'md5 non e presente nel dizionario inserisco direttamente newTuple nel dizionario
                             downloadMask = []
                             restDMask = int(nPart) % 8
                             if restDMask > 0:

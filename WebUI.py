@@ -108,7 +108,7 @@ def setup():
                                    ipv4tracker=lista[3], ipv6tracker=lista[4], porttracker=lista[5], log=loggato)
 
     if request.method == "POST":
-        if logged() is False:  # se non siamo già loggati
+        if logged() is False:  # se non siamo gia loggati
 
             peer_v4 = str(request.form['peer_ipv4'])
             peer_v6 = str(request.form['peer_ipv6'])
@@ -129,7 +129,7 @@ def setup():
                 peer_v6 = ""
 
             try:
-                # oltre al test sul valore numerico c'è anche il test (implicito) che sia un valore
+                # oltre al test sul valore numerico c'e anche il test (implicito) che sia un valore
                 # numerico grazie alla funzione int()
                 if (int(peer_port) > 65535) or (int(peer_port) < 0):
                     peer_port = ""
@@ -147,14 +147,14 @@ def setup():
                 tracker_v6 = ""
 
             try:
-                # oltre al test sul valore numerico c'è anche il test (implicito) che sia un valore
+                # oltre al test sul valore numerico c'e anche il test (implicito) che sia un valore
                 # numerico grazie alla funzione int()
                 if (int(tracker_port) > 65535) or (int(tracker_port) < 0):
                     tracker_port = ""
             except ValueError:
                 tracker_port = ""
 
-            # Se almeno uno dei parametri è stato reso "" dai controlli
+            # Se almeno uno dei parametri e stato reso "" dai controlli
             # allora devo rimandare l'utente alla pagina /setup vuotando i campi (sintatticamente) errati
             if (peer_v4 == "") or (peer_v6 == "") or (peer_port == "") or (tracker_v4 == "") or (tracker_v6 == "") or (
                     tracker_port == ""):
@@ -162,7 +162,7 @@ def setup():
                                        ipv4tracker=tracker_v4, ipv6tracker=tracker_v6, porttracker=tracker_port,
                                        log="false")
 
-            # Se siamo arrivati qui allora il controllo sintattico dei parametri è andato
+            # Se siamo arrivati qui allora il controllo sintattico dei parametri e andato
             # a buon fine quindi possiamo procedere.
             data = "SETP" + peer_v4 + ',' + peer_v6 + ',' + peer_port + ',' + tracker_v4 + ',' + tracker_v6 + ',' + tracker_port + '%'
 
@@ -177,7 +177,7 @@ def setup():
             else:
                 return redirect("/")
 
-        else:  # se siamo già loggati allora stiamo chiedendo il logout
+        else:  # se siamo gia loggati allora stiamo chiedendo il logout
             return redirect("/logout")
 
 
@@ -191,7 +191,7 @@ def search():
 
     if request.method == "POST":
         searchKey = "FIND"
-        if len(request.form['filename']) < 20:  # se "research" è più corta di 20 caratteri
+        if len(request.form['filename']) < 20:  # se "research" e piu corta di 20 caratteri
             searchKey = searchKey + (request.form['filename']).ljust(20)
         else:
             temp = request.form['filename']
@@ -206,7 +206,10 @@ def search():
         i = 0
         for el in risultati:
             if i < 3:
-                part.append(el)
+                if i == 1:
+                    part.append(el.strip())
+                else:
+                    part.append(el)
                 i += 1
             else:
                 i = 0
@@ -245,7 +248,7 @@ def upload():
             elif data == "FNF":
                 return render_template('upload.html', message='Impossibile aprire il file!')
             elif data == "FAS":
-                return render_template('upload.html', message='Si sta già condividendo il file selezionato!')
+                return render_template('upload.html', message='Si sta gia condividendo il file selezionato!')
             elif data == "FTB":
                 return render_template('upload.html',
                                        message="La dimesione in byte del file dev'essere di massimo 10 cifre!")
@@ -268,16 +271,19 @@ def logout():
         return "Logout failed."
 
 
-@app.route("/download", methods=['POST'])
+@app.route("/download")
 def download():
     if logged() is False:
         # print("Dentro logged() is false")
         return redirect('/setup')
-    data = "DOWN" + request.form['md5'] + ',' + request.form['descrizione'] + ',' + str(
-        request.form['dimFile']) + ',' + str(request.form['dimParti']) + "%"
+    '''data = "DOWN" + request.form['md5'] + ',' + request.form['descrizione'] + ',' + str(
+        request.form['dimFile']) + ',' + str(request.form['dimParti']) + "%"'''
+    print(request.args)
+    data = "DOWN" + str(request.args.get('md5')) + ',' + str(request.args.get('name')) + ',' + str(request.args.get('size')) + ',' + str(request.args.get('part')) + "%"
+    print("data: " + str(data))
     s.sendall(data.encode('utf-8'))
     data = recvUntil(s, "%").decode('utf-8')
-    return render_template('download.html', nome=request.form['descrizione'])
+    return render_template('download.html', data=request.args.get('name'))
 
 
 def kill():

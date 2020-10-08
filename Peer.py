@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 ############################################ LIBRERIE ############################################
 import bitstring
@@ -13,9 +13,9 @@ import time
 import v4v6
 
 ############################################ VARIABILI ############################################
-debug = False  # Consente di aumentare (True) / ridurre (False) la quantità di output prodotto a video
+debug = True  # Consente di aumentare (True) / ridurre (False) la quantita di output prodotto a video
 
-script_dir = os.path.dirname(__file__)  # E' il path dove si trova questo script  
+script_dir = os.path.dirname(os.path.abspath(__file__))  # E' il path dove si trova questo script
 
 config = {}
 # Dizionario in cui salviamo tutti i parametri inseriti all'avvio:
@@ -27,7 +27,7 @@ config = {}
 #   tracker_port    porta (in formato stringa di 5 caratteri) a cui risponde il tracker
 
 inUseDict = {}
-# Dizionario che conterrà una maschera delle parti in condivisione per i soli file NON COMPLETATI,
+# Dizionario che conterra una maschera delle parti in condivisione per i soli file NON COMPLETATI,
 # Esempio:
 #   inUseDict[md5] = (-1,-1,0,5,0,3)
 #   - parti 0 ed 1 sono le uniche che mi mancano
@@ -35,15 +35,15 @@ inUseDict = {}
 #   - parti 3 e 5 sono presenti e le sto inviando a qualcuno (a 5 peer la parte 3 ed a 3 peer la parte 5)
 
 sharedDict = {}
-# Dizionario dei file che il PEER ha posto in condivisione (serve per la RETR) così
+# Dizionario dei file che il PEER ha posto in condivisione (serve per la RETR) cosi
 #  da poter leggere il file
 # sharedDict = {md5: (abs_file_path, n_parts, len_part, (parts_mask))}
 
-sid = ""  # Finché saremo loggati quì troveremo il session_id restituitoci dal tracker
+sid = ""  # Finche saremo loggati qui troveremo il session_id restituitoci dal tracker
 
 logged = False  # Questo flag ci permette di sapere in qualsiasi istante se siamo loggati (True) oppure no (False)
 
-sTracker = None  # Quì finirà la socket che ci porrà in collegamento col tracker (dal login al logout)
+sTracker = None  # Qui finira la socket che ci porra in collegamento col tracker (dal login al logout)
 
 lockUseDict = threading.Lock()  # lock da acquisire per poter accedere in sicurezza a "inUseDict"
 
@@ -64,8 +64,8 @@ class webTalker(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
         self.killed = False
-        self.webHost = '127.0.0.1'  # Accetto solo connessioni da localhost (modificandolo è possibile agganciarsi ad una macchina distinta
-        self.webPort = 3001  # La porta sarà incrementata fino a trovare la prima libera
+        self.webHost = '127.0.0.1'  # Accetto solo connessioni da localhost (modificandolo e possibile agganciarsi ad una macchina distinta
+        self.webPort = 3001  # La porta sara incrementata fino a trovare la prima libera
         self.webSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.webConnection = None
         self.webAddress = None
@@ -183,7 +183,7 @@ class webTalker(threading.Thread):
                         data += "|"
             elif data == "FIND":
                 data = recvExact(self.webConnection,
-                                 20)  # Leggo la chiave da ricercare (già formattata a 20 caratteri da WebUI)
+                                 20)  # Leggo la chiave da ricercare (gia formattata a 20 caratteri da WebUI)
                 data = data.decode('utf-8')
                 print("RICEVUTO DAL WEB:" + data)
                 risultati = searchFile(self.sTracker, sid, lockSocket, data)
@@ -202,7 +202,7 @@ class webTalker(threading.Thread):
                 result = data.split(',')
                 data = downloadFile(result, sid, self.sTracker, lockSocket)
 
-            data = data + "%"  # Uso il simbolo % come terminatore del messaggio (dall'altra parte leggerò finché non
+            data = data + "%"  # Uso il simbolo % come terminatore del messaggio (dall'altra parte leggero finche non
             # lo trovo)
             self.webConnection.sendall(data.encode('utf-8'))
 
@@ -232,7 +232,7 @@ class partsUpdater(threading.Thread):
             peerList = checkStatus(self.sid, self.md5, self.n_parts, self.sTracker, self.sLock)
             temp = []
             for i in range(0, self.n_parts):
-                temp.append((i, 0, []))  # la lista conterrà (id_parte, #peer_che_la_possiedono, ((ip1,p1), (ip2,p2)))
+                temp.append((i, 0, []))  # la lista conterra (id_parte, #peer_che_la_possiedono, ((ip1,p1), (ip2,p2)))
 
             for peer in peerList:
                 for part in range(0, self.n_parts):
@@ -261,7 +261,7 @@ class partsUpdater(threading.Thread):
                     #        tuple = temp[part][2].append(peer)
                     #        temp[part] = (temp[part][0], temp[part][1] +1, tuple)
 
-            temp.sort(reverse=False, key=ordinamento)  # ordino la lista delle parti dalla più rara alla più disponibile
+            temp.sort(reverse=False, key=ordinamento)  # ordino la lista delle parti dalla piu rara alla piu disponibile
             self.lock.acquire()
             # aggiorno la lista che gli altri processi consultano
             global partsList
@@ -409,7 +409,7 @@ class peerWorker(threading.Thread):
             return
 
         for i in range(nChunk):
-            if i == (nChunk - 1):  # se è l'ultimo chunk ne calcolo la sua dimensione
+            if i == (nChunk - 1):  # se e l'ultimo chunk ne calcolo la sua dimensione
                 lenChunk = partSize - data_offset
                 dataChunk = str(lenChunk).zfill(5).encode('utf-8')
                 dataChunk += (partData[data_offset:])
@@ -452,29 +452,34 @@ class poolWorker(threading.Thread):
         self.working = True
 
     def run(self):
-        while (self.stopped is False):
-            if (self.working == True):  # se ho del lavoro da svolgere
+        while self.stopped is False:
+            print(" dentro while self.stopper")
+            print("self.working: " + str(self.working))
+            if self.working is True:  # se ho del lavoro da svolgere
+                print(" dentro if self.working")
                 while True:
+                    print(" dentro while true")
                     sockDownload = randomConnection(self.peer[0], int(self.peer[1]))
                     if sockDownload is None:
                         print("[POOL_WORKER_" + str(self.id) + "] ERROR: Cannot connect to the peer", self.peer[0], ":",
                               self.peer[1], ". Retry...")
-                        getch()
+                        # getch()
                     else:
                         break
 
                 message = "RETP" + str(self.md5) + str(self.part_id).zfill(8)
 
                 print("[POOL_WORKER" + str(self.id) + "] <" + str(message))
-
+                print("message: " + message)
                 sockDownload.sendall(message.encode('utf-8'))
 
                 data = recvExact(sockDownload, 10).decode('utf-8')  # punto a ricevere "AREP#chunk"
                 n_chunks = int(data[4:])
 
-                if debug is True:   print("[POOL_WORKER" + str(self.id) + "] #chunk = " + str(n_chunks))
+                if debug is True:  print("[POOL_WORKER" + str(self.id) + "] #chunk = " + str(n_chunks))
 
                 partName = self.md5 + '.' + str(self.part_id).zfill(8)
+                print("ospathjoin: " + str(os.path.join(script_dir, partName)))
                 partFile = open(os.path.join(script_dir, partName), "wb")
 
                 for index in range(0, n_chunks):
@@ -503,7 +508,7 @@ class poolWorker(threading.Thread):
                 self.completedLock.release()
 
                 self.working = False
-            return
+        return
 
     def isBusy(self):
         return self.working
@@ -581,7 +586,7 @@ def list2string(lista):
 
 def addFile(sock, Session_ID, sLock, sharedDict, file_name, file_description, config):
     while True:
-        # script_dir = os.path.dirname(__file__)  # questo è il path dove si trova questo script
+        # script_dir = os.path.dirname(__file__)  # questo e il path dove si trova questo script
         # rel_path = str(input("Insert the file name (extension included): "))
         # file_name = os.path.join(script_dir, rel_path)
         try:
@@ -603,7 +608,7 @@ def addFile(sock, Session_ID, sLock, sharedDict, file_name, file_description, co
 
     # fileDescription = str(input("Insert the file description (max 100chars): "))
 
-    if len(file_description) < 100:  # se "fileDescription" è più corta di 100 caratteri
+    if len(file_description) < 100:  # se "fileDescription" e piu corta di 100 caratteri
         fileDescription = file_description.ljust(100)  # concateno gli spazi necessari alla descrizione originale
     else:  # se "fileDescription" ha almeno 100 caratteri
         fileDescription = file_description[0:100]  # prendo i primi 100 caratteri
@@ -817,15 +822,15 @@ def downloadFile(result, Session_ID, sTracker, sLock):
     # if(debug is True):  print("INFO: Pool correctly started.")
 
     while True:
-        if (len(
-                partsList) == n_parts):  # posso procedere solo dopo che l'updater ha processato almeno una volta la partsList
+        # posso procedere solo dopo che l'updater ha processato almeno una volta la partsList
+        if len(partsList) == n_parts:
             partsLock.acquire()
             try:
-                # Devo processare partsList al fine di mettere in toChoose tutti gli ID delle parti più rare tra quelle che mi mancano
+                # Devo processare partsList al fine di mettere in toChoose tutti gli ID delle parti piu rare tra quelle che mi mancano
                 toChoose = []  # lista in cui metto l'id delle parti tra cui scegliere la prossima da scaricare
                 index = 0  # indice per scorrere la lista
-                value = int(partsList[-1][1])  # prendo la disponibilità massima tra le parti
-                stop = False  # (part_id, *disponibilità* , [(peerA,portA),(peerB,portB),...])
+                value = int(partsList[-1][1])  # prendo la disponibilita massima tra le parti
+                stop = False  # (part_id, *disponibilita* , [(peerA,portA),(peerB,portB),...])
 
                 while (stop is False) and (index < len(partsList)):
                     if int(partsList[index][1]) <= value:
@@ -899,6 +904,8 @@ def downloadFile(result, Session_ID, sTracker, sLock):
     dataFile = open(file_path, "wb")
     for i in range(0, n_parts):
         partName = str(md5) + '.' + str(i).zfill(8)
+        print("script_dir: " + str(script_dir))
+        print("ospath: " + str(os.path.join(script_dir,partName)))
         partFile = open(os.path.join(script_dir, partName), "rb")
         dataFile.write(partFile.read())
         partFile.close()
@@ -999,7 +1006,7 @@ def loadConfiguration():
         for key, value in config.items():
             print(str(key) + "\t:\t" + str(value))
 
-        getch()
+        # getch()
         clear()
     return config
 
@@ -1090,7 +1097,7 @@ def partModify(md5, partId, inc):
         return False
 
     lockUseDict.acquire()
-    locked = inUseDict[md5]  # MD5 = (-1,-1,-1,0,0,0,1,40,0,-1,0, ...) dove la lunghezza è n_parts
+    locked = inUseDict[md5]  # MD5 = (-1,-1,-1,0,0,0,1,40,0,-1,0, ...) dove la lunghezza e n_parts
 
     if part_id not in range(0, len(locked)):
         print("ERROR: partModify(" + str(md5) + ',' + str(part_id) + ',' + str(inc) + ") but there are only " + str(
@@ -1128,7 +1135,7 @@ def partRelease(md5, part_id):
 
 def partUpdate(md5):
     lockUseDict.acquire()
-    locked = inUseDict[md5]  # MD5 = (-1,-1,-1,0,0,0,1,40,0,-1,0, ...) dove la lunghezza è n_parts
+    locked = inUseDict[md5]  # MD5 = (-1,-1,-1,0,0,0,1,40,0,-1,0, ...) dove la lunghezza e n_parts
     shared = sharedDict[md5][3]  # MD5 = (file_name, n_parts, len_parts, mask)
 
     if (len(locked) != len(shared)):
@@ -1138,7 +1145,7 @@ def partUpdate(md5):
         return False
 
     for index in range(0, len(locked)):
-        # se inUseDict non sapeva che la part_id=index era stata scaricata dal peer, allora aggiorno dicendo che è disponibile.
+        # se inUseDict non sapeva che la part_id=index era stata scaricata dal peer, allora aggiorno dicendo che e disponibile.
         if ((locked[index] == -1) and (shared[index] == 1)):    locked[index] = 0
 
     inUseDict[md5] = locked
@@ -1152,7 +1159,7 @@ def partLocked(md5, part_id):
         lockUseDict.release()
         return -1
 
-    locked = inUseDict[md5]  # MD5 = (-1,-1,-1,0,0,0,1,40,0,-1,0, ...) dove la lunghezza è n_parts
+    locked = inUseDict[md5]  # MD5 = (-1,-1,-1,0,0,0,1,40,0,-1,0, ...) dove la lunghezza e n_parts
 
     lockUseDict.release()
 
@@ -1168,10 +1175,10 @@ def partLocked(md5, part_id):
 
 
 def searchFile(sock, Session_ID, sLock, research):
-    # if len(research) < 20:  # se "research" è più corta di 20 caratteri
+    # if len(research) < 20:  # se "research" e piu corta di 20 caratteri
     #    to_be_added = " " * (20 - len(research)) # creo una stringa con gli spazi necessari per giungere a 20 caratteri
     #    research = research + to_be_added  # concateno gli spazi necessari alla chiave di ricerca inserita
-    # if len(research) > 20:  # se "fileDescription" ha più di 20 caratteri
+    # if len(research) > 20:  # se "fileDescription" ha piu di 20 caratteri
     #    research = research[0:20]  # prendo i primi 20 caratteri
 
     msg = "LOOK" + Session_ID + research
@@ -1221,7 +1228,7 @@ def searchFile(sock, Session_ID, sLock, research):
     # while True:
     #    choice = str(input("\nDo you want to download one of this files? [y/n]:"))
     #    if choice == "n":
-    #        return  # torno al menu principale in quanto non ho altro da fare quì
+    #        return  # torno al menu principale in quanto non ho altro da fare qui
     #    if choice == "y":
     #        break  # procedo con il download
 
@@ -1242,7 +1249,7 @@ def searchFile(sock, Session_ID, sLock, research):
 
 
 def randomConnection(HOST, PORT):
-    ips = HOST.split("|")  # in questo modo ips[0] conterrà ipv4_directory, ips[1] conterrà ipv6_directory
+    ips = HOST.split("|")  # in questo modo ips[0] conterra ipv4_directory, ips[1] conterra ipv6_directory
     coin = random.randint(0, 1)
 
     if coin == 0:  # connessione con ipv4
@@ -1305,7 +1312,7 @@ def saveConfiguration(actualConfig):
     return True
 
 
-def setCompleted(md5, part_id):  # restituisce False se qualcosa è andato storto, True se ha completato con successo
+def setCompleted(md5, part_id):  # restituisce False se qualcosa e andato storto, True se ha completato con successo
     if (len(md5) != 32):
         print("WARNING: setCompleted called with a wrong lenght's MD5. Abort.")
         return False

@@ -1,5 +1,5 @@
 """
-Code provided by: Giampaolo Rodolà
+Code provided by: Giampaolo Rodola
 Published on: http://code.activestate.com/recipes/578504-server-supporting-ipv4-and-ipv6/
 Under: MIT License
 -----------------------------------------------------------------

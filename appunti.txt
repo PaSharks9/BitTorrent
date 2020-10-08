@@ -4,4 +4,4 @@ APPUNTI:
 
 PROBLEMI:
 - Search non funziona, sebbene io abbia provato a cercare un file da me condiviso, il tracker sembrerebbe non dare risposte
-- Download non funziona, forse per come è fatto funziona se metto un href su un md5 di un file uscito come risultato dalla search?
+- Download non funziona, forse per come e fatto funziona se metto un href su un md5 di un file uscito come risultato dalla search?
