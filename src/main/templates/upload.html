@@ -1,0 +1,75 @@
+{% extends "interfaceHomepage.html" %}
+
+{% block script %}
+<script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
+{% endblock %}
+
+<!-- Navbar -->
+{% block navbar %}
+  <li class="nav-item">
+    <a class="nav-link" href="/">Home</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="/search">Search</a>
+  </li>
+  <li class="nav-item">
+      <a class="nav-link" href="/download">Download</a>
+  </li>
+  <li class="nav-item active">
+      <a class="nav-link" href="/upload">Add File</a>
+  </li>
+{% endblock %}
+
+
+
+{% block content %}
+     {% if msg!='y'%}
+        <div class="container" style="align-items: center">
+            <h2 style="color: red">Caricamento File</h2><br>
+            <p>Seleziona il file da condividere</p>
+            <form role="form" method='POST' action="/upload" enctype="multipart/form-data">
+                <div class="form-group">
+                    <p><input type="file" name="elemento" id="elemento"></p>
+                    <p style="margin-right: 100px">Aggiungi una descrizione al file che si vuole caricare!</p>
+                    <p><input type="text" name="descrizione" id="descrizione" placeholder="Scrivi una descrizione"></p>
+                </div>
+                <button type="submit">Carica!</button>
+            </form>
+            <h4 style="color: red">{{ message }}</h4>
+            <br>
+        </div>
+        {% if load == "y" %}
+            <div class="container test-docs">
+                 <div class="modal" tabindex="-1" role="dialog" id="loaded">
+                      <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                          <div class="modal-header">
+                            <h5 class="modal-title">File caricato correttamente!</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                              <span aria-hidden="true">&times;</span>
+                            </button>
+                          </div>
+                          <div class="modal-body">
+                            <p>MD5: {{ md5 }}</p>
+                          </div>
+                          <div class="modal-footer">
+                            <a href="/" role="button" class="btn btn-secondary"  style="color: blue; text-align: center; margin-top: 30px">Close</a>
+                          </div>
+                        </div>
+                      </div>
+                 </div>
+            </div>
+            <script>
+                $(document).ready(function(){
+                    $("#loaded").modal('show');
+                });
+            </script>
+        {% endif %}
+     {% endif %}
+{% endblock %}
+
+
+
+
+
+

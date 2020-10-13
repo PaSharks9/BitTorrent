@@ -1,0 +1,60 @@
+{% extends "interfaceHomepage.html" %}
+<!-- Navbar -->
+{% block navbar %}
+  <li class="nav-item">
+    <a class="nav-link" href="/">Home</a>
+  </li>
+  <li class="nav-item active">
+    <a class="nav-link" href="/search">Search</a>
+  </li>
+  <li class="nav-item">
+      <a class="nav-link" href="/download">Download</a>
+  </li>
+  <li class="nav-item">
+      <a class="nav-link" href="/upload">Add File</a>
+  </li>
+{% endblock %}
+
+
+<!-- Content -->
+{% block content %}
+<div  style="text-align: center;">
+   <h1>Search File</h1>
+</div>
+<form role="form"  method='POST' action="/search" class="form-inline" style="margin-top: 50px">
+  <div class="form-group mx-sm-3 mb-2">
+    <label for="filename"> Inserire il File che si vuole cercare: </label> <br>
+    <input type="text" class="form-control" id="filename" name="filename" placeholder="Filename" style="margin-left: 20px">
+  </div>
+  <button type="submit" class="btn btn-primary mb-2">Cerca!</button>
+</form>
+<div style="margin-top: 50px; text-align: center; ">
+    <label for="downloadedFileTable"></label>
+    <h2 style="color: red">File condivisi nel Sistema </h2>
+
+    {% if data is not none %}
+        <table id="downloadedFileTable" style="width:100%">
+            <tr>
+                <th>Md5 file</th>
+                <th>Descrizione</th>
+                <th>Dimensione file</th>
+                <th>Dimensione parti</th>
+                <th></th>
+            </tr>
+
+            {% for element in data %}
+            <tr>
+                <td>{{ element[0] }}</td>
+                <td>{{ element[1] }}</td>
+                <td>{{ element[2] }}</td>
+                <td>{{ element[3] }}</td>
+                <td><a href="/download?md5={{ element[0] }}&name={{ element[1] }}&size={{ element[2] }}&part={{ element[3] }}">Download!</a></td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p> Il file cercato non è al momento condiviso da nessun peer!</p>
+    {% endif %}
+</div>
+
+{% endblock %}

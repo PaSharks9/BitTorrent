@@ -1,0 +1,86 @@
+{% extends "interfaceHomepage.html" %}
+
+
+{% block navbar %}
+    {% if sid == False %}
+      <li class="nav-item active">
+          <a class="nav-link" href="/setup">Home </a>
+      </li>
+      <li class="nav-item">
+          <a class="nav-link" href="/setup">Search</a>
+      </li>
+      <li class="nav-item">
+          <a class="nav-link" href="/setup">Download</a>
+      </li>
+      <li class="nav-item">
+          <a class="nav-link" href="/setup">Add File</a>
+      </li>
+    {% else %}
+      <li class="nav-item active">
+          <a class="nav-link" href="/">Home </a>
+      </li>
+      <li class="nav-item">
+          <a class="nav-link" href="/search">Search</a>
+      </li>
+      <li class="nav-item">
+          <a class="nav-link" href="/download">Download</a>
+      </li>
+      <li class="nav-item">
+          <a class="nav-link" href="/upload">Add File</a>
+      </li>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    <!-- Status bar && LogIn -->
+    {% if sid == False or sid == 0000000000000000 or sid == "ERR" %}
+      <div class="card-body">
+          <div style="float: left; margin-left: 5px;" >Status:</div>
+          <div style="float: left; margin-left: 5px; color: red;"> Offline </div><br>
+          <div style=" text-align: center; margin-top: 100px;">
+              <h5 style="color: blue; font-size: 150%;">LOGIN</h5>
+              <p class="card-text" style="margin-top: 50px">Click the button below to log the peer to the tracker</p>
+              <a href="/setup" class="btn btn-primary" style="color: blue; text-align: center; margin-top: 30px">Login</a>
+          </div>
+      </div>
+    {% else %}
+      <div style="text-align: left;">
+          <p style="float: left; margin-left: 5px;" >Status:</p>
+          <p style="float: left; margin-left: 5px; color: green;"> Online </p>
+          <p style="margin-right: 5px; float: right;">SID: {{ sid }}</p>
+      </div>
+      <br>
+      <div style="text-align: center; margin-top: 150px;">
+          {% if data == "" %}
+            <p>L'utente non ha nessun file in condivisione in questo momento. Per condividere un file, passare alla sezione:</p>
+            <a href="/upload" class="btn btn-primary" style="color: blue; text-align: center; margin-top: 30px">AddFile</a>
+          {% else %}
+            <h2> File Condivisi </h2>
+            <div style="margin-top: 50px;">
+                <table class="table table-dark">
+                  <thead>
+                    <tr>
+                      <th scope="col">#</th>
+                      <th scope="col">MD5</th>
+                      <th scope="col">Len_Parts</th>
+                      <th scope="col">Owned_Parts</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for element in data %}
+                        {% if element != None %}
+                            <tr>
+                              <th scope="row">-</th>
+                              <td>{{ element[0] }}</td>
+                              <td>{{ element[1] }}</td>
+                              <td>{{ element[2] }} on {{ element[3] }}</td>
+                            </tr>
+                        {% endif %}
+                    {% endfor %}
+                  </tbody>
+                </table>
+            </div>
+          {% endif %}
+        </div>
+    {% endif %}
+{% endblock %}

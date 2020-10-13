@@ -1,0 +1,85 @@
+{% extends "interfaceHomepage.html" %}
+
+{% block script %}
+<script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
+<script>
+    $(document).ready(function(){
+        $("#exampleModal").modal('show');
+    });
+</script>
+{% endblock %}
+
+{% block navbar %}
+  <li class="nav-item active">
+      <a class="nav-link" href="/">Home </a>
+  </li>
+  <li class="nav-item">
+      <a class="nav-link" href="/search">Search</a>
+  </li>
+  <li class="nav-item">
+      <a class="nav-link" href="/download">Download</a>
+  </li>
+  <li class="nav-item">
+      <a class="nav-link" href="/upload">Add File</a>
+  </li>
+{% endblock %}
+
+{% block content %}
+<h1 style="color: red; text-align: center; "> Setup parameters </h1>
+{% if msg == "y" %}
+    <div class="modal" tabindex="-1" role="dialog" id="exampleModal">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">BitTorrent Setup</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <p>Inserire i dati richiesti per poter avviare BitTorrent</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+{% endif %}
+
+    <form role="form" method='POST' action="/setup">
+        <div class="form-group">
+            <table>
+                <tr>
+                    <th>PARAM</th>
+                    <th style="text-align: center">PEER</th>
+                    <th>TRACKER</th>
+                </tr>
+                <tr>
+                    <td>IPV4</td>
+                    <td><input type="text" name="peer_ipv4" id="peer_ipv4" value={{ ipv4peer }}></td>
+                    <td><input type="text" name="tracker_ipv4" id="tracker_ipv4" value={{ ipv4tracker }}></td>
+                </tr>
+                <tr>
+                    <td>IPV6</td>
+                    <td><input type="text" name="peer_ipv6" id="peer_ipv6" value={{ ipv6peer }}></td>
+                    <td><input type="text" name="tracker_ipv6" id="tracker_ipv6" value={{ ipv6tracker }}></td>
+                </tr>
+                <tr>
+                    <td>PORTA</td>
+                    <td><input type="text" name="peer_port" id="peer_port" value={{ portpeer }}></td>
+                    <td><input type="text" name="tracker_port" id="tracker_port" value={{ porttracker }}></td>
+                </tr>
+            </table>
+        </div>
+        <br>
+
+        {% if log == "true" %}
+            <button type="submit">Logout</button>
+        {% else %}
+            <button type="submit">Login</button>
+        {% endif %}
+
+    </form>
+        <br>
+{% endblock %}
