@@ -184,7 +184,7 @@ class webTalker(threading.Thread):
 # Istanzio il thread che risponde all'interfaccia web
 webHost = '127.0.0.1'  # Accetto solo connessioni da localhost (modificandolo e possibile agganciarsi ad
 # una macchina distinta
-webPort = 3003  # La porta sara incrementata fino a trovare la prima libera
+webPort = 3001  # La porta sara incrementata fino a trovare la prima libera
 webSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 webSocket.bind((webHost, webPort))

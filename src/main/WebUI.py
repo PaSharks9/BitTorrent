@@ -12,7 +12,7 @@ s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 try:
     # PORT = int(input("Digitare il numero di porta a cui collegarsi"))
-    PORT = 3003
+    PORT = 3001
     s.connect((HOST, PORT))
 except socket.error as e:
     # print("ERROR: Wrong port number. Please check, than retry...")

@@ -20,7 +20,6 @@ default_task = ['clean', 'analyze', 'publish']
 def set_properties(project):
     project.set_property("dir_source_main_python", "src/main")
     project.set_property("dir_source_unittest_python", "src/test")
-    project.set_property("dir_source_main_scripts", "src/main")
     project.set_property("coverage_exceptions", ['Peer', 'Tracker', 'v4v6'])
 
 

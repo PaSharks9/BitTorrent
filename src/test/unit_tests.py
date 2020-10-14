@@ -205,7 +205,7 @@ class HomePageTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200, "2)Il codice http ritornato non e 200")
 
     def test_b3_upload(self):
-        path = '/home/luca/Scrivania/BitTorrent/test'
+        path = '/home/luca/Scrivania/BitTorrent/src/test'
         monkey_file = open(path + "/monkeyFile.jpg", 'rb')
         payload1 = {
             'descrizione': 'filevuoto',
