@@ -4,7 +4,7 @@ from flask import Flask, render_template, request, redirect, url_for
 
 # from werkzeug import secure_filename
 app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, "downloads")
+app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, "uploads")
 
 # Programma
 HOST = '127.0.0.1'  # The remote host
@@ -246,8 +246,6 @@ def download():
     if logged() is False:
         # print("Dentro logged() is false")
         return redirect('/setup')
-    '''data = "DOWN" + request.form['md5'] + ',' + request.form['descrizione'] + ',' + str(
-        request.form['dimFile']) + ',' + str(request.form['dimParti']) + "%"'''
     print(request.args)
     data = "DOWN" + str(request.args.get('md5')) + ',' + str(request.args.get('name')) + ',' + str(
         request.args.get('size')) + ',' + str(request.args.get('part')) + "%"

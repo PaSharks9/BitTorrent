@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-############################################ LIBRERIE ############################################
+# ########################################### LIBRERIE ############################################
 import bitstring
 import hashlib
 import ipaddress
@@ -12,7 +12,7 @@ import threading
 import time
 import v4v6
 
-############################################ VARIABILI ############################################
+# ########################################### VARIABILI ############################################
 debug = True  # Consente di aumentare (True) / ridurre (False) la quantita di output prodotto a video
 
 script_dir = os.path.dirname(os.path.abspath(__file__))  # E' il path dove si trova questo script
@@ -182,8 +182,8 @@ class webTalker(threading.Thread):
                             presenti) + ":" + str(tupla[2]))
                         data += "|"
             elif data == "FIND":
-                data = recvExact(self.webConnection,
-                                 20)  # Leggo la chiave da ricercare (gia formattata a 20 caratteri da WebUI)
+                # Leggo la chiave da ricercare (gia formattata a 20 caratteri da WebUI)
+                data = recvExact(self.webConnection,20)
                 data = data.decode('utf-8')
                 print("RICEVUTO DAL WEB:" + data)
                 risultati = searchFile(self.sTracker, sid, lockSocket, data)
