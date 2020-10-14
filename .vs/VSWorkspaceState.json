@@ -1,8 +1,10 @@
 {
   "ExpandedNodes": [
     "",
-    "\\templates"
+    "\\sorgenti",
+    "\\src",
+    "\\src\\main"
   ],
-  "SelectedNode": "\\WebUI.py",
+  "SelectedNode": "\\setup.py",
   "PreviewInSolutionExplorer": false
 }

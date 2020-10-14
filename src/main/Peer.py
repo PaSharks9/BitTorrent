@@ -99,6 +99,7 @@ class webTalker(threading.Thread):
                 self.config = loadConfiguration()
                 if self.config is None:
                     data = ""
+                    self.config = {}
                 else:
                     data = ""
                     data = data + str(self.config["peer_ipv4"]) + ','
@@ -992,15 +993,14 @@ def loadConfiguration():
         config["peer_ipv4"] = implodeIpv4(from_csv[0])
         config["peer_ipv6"] = implodeIpv6(from_csv[1])
         config["peer_port"] = str(from_csv[2]).zfill(5)
-        config["peer_ips"] = from_csv[3]
-        # config["peer_ips"] = explodeIpv4(config["peer_ipv4"]) + '|' + explodeIpv6(config["peer_ipv6"])
+        
+        config["tracker_ipv4"] = implodeIpv4(from_csv[3])
+        config["tracker_ipv6"] = implodeIpv6(from_csv[4])
+        config["tracker_port"] = str(from_csv[5]).zfill(5)
 
-        config["tracker_ipv4"] = implodeIpv4(from_csv[4])
-        config["tracker_ipv6"] = implodeIpv6(from_csv[5])
-        config["tracker_port"] = str(from_csv[6]).zfill(5)
+        config["peer_ips"] = from_csv[6]
         config["tracker_ips"] = from_csv[7]
-        # config["tracker_ips"] = explodeIpv4(config["tracker_ipv4"]) + '|' + explodeIpv6(config["tracker_ipv6"])
-
+        
     if debug is True:
         print("[INFO] From configuration's file i rode:")
         for key, value in config.items():
