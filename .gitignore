@@ -4,9 +4,8 @@
 
 # File da Ignorare nella cartella del progetto
 
-peerConfiguration.csv
+# peerConfiguration.csv
 initVenv.sh
-
 
 
 ### Flask ###
