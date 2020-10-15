@@ -179,9 +179,8 @@ class webTalker(threading.Thread):
                 if len(sharedDict.items()) != 0:
                     for md5, tupla in sharedDict.items():
                         presenti = tupla[3].count('1')
-                        data = (str(md5) + ":" + str(tupla[1]).ljust(6, ' ') + ":" + str(
-                            presenti) + ":" + str(tupla[2]))
-                        data += "|"
+                        data += (str(md5) + ":" + str(tupla[1]).ljust(6, ' ') + ":" + str(
+                            presenti) + ":" + str(tupla[2])) + "|"
             elif data == "FIND":
                 # Leggo la chiave da ricercare (gia formattata a 20 caratteri da WebUI)
                 data = recvExact(self.webConnection,20)
