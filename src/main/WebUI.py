@@ -12,7 +12,7 @@ s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 try:
     # PORT = int(input("Digitare il numero di porta a cui collegarsi"))
-    PORT = 3001
+    PORT = 3002
     s.connect((HOST, PORT))
 except socket.error as e:
     # print("ERROR: Wrong port number. Please check, than retry...")
@@ -236,15 +236,10 @@ def logout():
     data = recvUntil(s, "%").decode('utf-8')
 
     if data == "OK":
-<<<<<<< HEAD
-        return redirect("/setup")
-    else:
-        return
-=======
         return render_template('logout.html', result="ok")
     else:
+
         return render_template('logout.html', result="ko")
->>>>>>> c0c6202e0138c992237960e2d80116d529ed023e
 
 
 @app.route("/download")
