@@ -236,7 +236,7 @@ def logout():
     data = recvUntil(s, "%").decode('utf-8')
 
     if data == "OK":
-        return "Logout successfully performed."
+        return redirect("/setup")
     else:
         return "Logout failed."
 
