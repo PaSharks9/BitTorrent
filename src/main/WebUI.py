@@ -238,7 +238,7 @@ def logout():
     if data == "OK":
         return redirect("/setup")
     else:
-        return "Logout failed."
+        return
 
 
 @app.route("/download")

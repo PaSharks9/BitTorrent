@@ -30,7 +30,7 @@ class HomePageTests(unittest.TestCase):
         finally:
             template_rendered.disconnect(record, app)
 
-    ''' # ############################# TEST DA SLOGGATI ###########################################
+    # ############################# TEST DA SLOGGATI ###########################################
     def test_a1_homepage(self):
         print("TEST DA SLOGGATI")
         print("\n- Test Homepage")
@@ -40,13 +40,12 @@ class HomePageTests(unittest.TestCase):
         self.assertEqual(response.status_code, 302, "Redirezione di homepage(sloggato) non e andata a buon fine")
         self.assertEqual(response.location, 'http://localhost/setup',
                          "Errore, non si e stati reindirizzati  correttamente")
-    
+
         # Verifico che la redirezione vada a buon fine
         with self.captured_templates() as templates:
             response = self.app.get('/', follow_redirects=True)
             assert len(templates) == 1, "Errore, piu templates per una stessa chiamata"
             template, context = templates[0]
-            print("Response.location: " + str(response.location))
             self.assertEqual(response.status_code, 200, "Redirezione di homepage(sloggato) non e andata a buon fine")
             self.assertEqual(template.name, "setup.html", "Errore, redirezione su una pagina diversa da setup")
 
@@ -172,80 +171,7 @@ class HomePageTests(unittest.TestCase):
         print("\n\t-[Test di Setup]4 Verifico la logout da setup")
         response = self.app.post('/setup', data=payload2, follow_redirects=False)
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.location, 'http://localhost/logout') '''
-
-    # ############################# TEST DA LOGGATI ###########################################
-
-    def test_b1_homepage(self):
-        # Test di post su setup da loggati, dovrebbe essere visto come un logout ed essere reindirizzati su /logout
-        print("\n- Test get Homepage")
-        with self.captured_templates() as templates:
-            response = self.app.get('/', follow_redirects=False)
-            assert len(templates) == 1, "Errore, piu templates per una stessa chiamata"
-            template, context = templates[0]
-            self.assertEqual(200, response.status_code, "Wrong status code received ")
-            self.assertEqual(context['data'], [["abcdefghiasmckaldkfideldlsopie32"], ["100"], ["5"], ["10"]])
-            self.assertEqual(context['sid'], "0123456789123456")
-
-    def test_b2_search(self):
-        print("\n- Test di Search: ")
-        print("\n\t1- Testing get method on Search")
-        with self.captured_templates() as templates:
-            response = self.app.get('/search', follow_redirects=False)
-            assert len(templates) == 1, "Errore, piu templates per una stessa chiamata"
-            template, context = templates[0]
-            self.assertEqual(response.status_code, 200, "Il codice http ritornato non e 200")
-            self.assertEqual(context['data'], "", "Errore, data deve essere: "" ")
-            self.assertEqual(context['sid'], "0123456789123456")
-
-        print("\n\t2- Testing post method on Search")
-        print("\t\t1) Ricerca di file con nome 'helmet': ")
-        payload = {'filename': 'helmet'}
-        with self.captured_templates() as templates:
-            response = self.app.post('/search', data=payload, follow_redirects=False)
-            assert len(templates) == 1, "Errore, piu templates per una stessa chiamata"
-            template, context = templates[0]
-            # Verifico che i dati vengano splittati correttamente
-            self.assertEqual(context['data'], [["e11f7b6e50eb65e311a591a244210c69", "helmet", '100', '10']])
-            self.assertEqual(response.status_code, 200, "1)Il codice http ritornato non e 200")
-
-        print("\t\t2) Ricerca di tutti i file tramite '*': ")
-        payload = {'filename': '*'}
-        response = self.app.post('/search', data=payload, follow_redirects=False)
-        self.assertEqual(response.status_code, 200, "2)Il codice http ritornato non e 200")
-
-    def test_b3_upload(self):
-        path = '/home/luca/Scrivania/BitTorrent/src/test'
-        monkey_file = open(path + "/monkeyFile.jpg", 'rb')
-        payload1 = {
-            'descrizione': 'filevuoto',
-            'elemento': monkey_file
-        }
-        print("\n- Test di Upload")
-        with self.captured_templates() as templates:
-            print("\n\t1- Testing get method on Upload")
-            response = self.app.get('/upload', follow_redirects=False)
-            assert len(templates) == 1, "Errore, piu templates per una stessa chiamata"
-            template, context = templates[0]
-            self.assertEqual(response.status_code, 200, "Il codice http ritornato non e 200")
-            self.assertEqual(context['message'], "", "Il messaggio nella get deve essere '' ")
-
-            print("\n\t2- Testing post method on Upload")
-            response = self.app.post('/upload', data=payload1, follow_redirects=False)
-            assert len(templates) == 2, "Errore, piu templates per una stessa chiamata"
-            template, context = templates[1]
-            self.assertEqual(response.status_code, 200, "Il codice http ritornato non e 200")
-            self.assertEqual(context['load'], 'y', "Errore nel messaggio di caricamento")
-
-    def test_b4_logout(self):
-        print("\n- Test di Logout")
-        response = self.app.get('/logout', follow_redirects=False)
-        self.assertEqual(response.status_code, 302, "Errore, mancata ridirezione a Setup")
-        self.assertEqual(response.location, 'http://localhost/setup',
-                         "Errore, non si e stati reindirizzati  correttamente")
-
-        response = self.app.get('/logout', follow_redirects=True)
-        self.assertEqual(response.status_code, 200, "Redirezione di logout non e andata a buon fine")
+        self.assertEqual(response.location, 'http://localhost/logout')
 
 
 if __name__ == "__main__":
