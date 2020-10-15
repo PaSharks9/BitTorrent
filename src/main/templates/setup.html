@@ -10,7 +10,7 @@
 {% endblock %}
 
 {% block navbar %}
-  <li class="nav-item active">
+  <li class="nav-item">
       <a class="nav-link" href="/">Home </a>
   </li>
   <li class="nav-item">
@@ -19,6 +19,11 @@
   <li class="nav-item">
       <a class="nav-link" href="/upload">Add File</a>
   </li>
+    {% if sid != False %}
+      <li class="nav-item">
+          <a class="nav-link" href="/logout">Logout</a>
+      </li>
+    {% endif %}
 {% endblock %}
 
 {% block content %}
