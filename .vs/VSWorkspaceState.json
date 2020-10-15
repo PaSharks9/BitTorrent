@@ -1,10 +1,10 @@
 {
   "ExpandedNodes": [
     "",
-    "\\sorgenti",
     "\\src",
-    "\\src\\main"
+    "\\src\\main",
+    "\\src\\main\\templates"
   ],
-  "SelectedNode": "\\src\\main\\Peer.py",
+  "SelectedNode": "\\src\\main\\Tracker.py",
   "PreviewInSolutionExplorer": false
 }

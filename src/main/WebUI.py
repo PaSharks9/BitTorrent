@@ -236,9 +236,9 @@ def logout():
     data = recvUntil(s, "%").decode('utf-8')
 
     if data == "OK":
-        return "Logout successfully performed."
+        return render_template('logout.html', result="ok")
     else:
-        return "Logout failed."
+        return render_template('logout.html', result="ko")
 
 
 @app.route("/download")
