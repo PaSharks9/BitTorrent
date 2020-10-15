@@ -43,9 +43,13 @@ class HomePageTests(unittest.TestCase):
                          "Errore, non si e stati reindirizzati  correttamente")
     
         # Verifico che la redirezione vada a buon fine
-        response = self.app.get('/', follow_redirects=True)
-        print("Response.location: " + str(response.location))
-        self.assertEqual(response.status_code, 200, "Redirezione di homepage(sloggato) non e andata a buon fine")
+        with self.captured_templates() as templates:
+            response = self.app.get('/', follow_redirects=True)
+            assert len(templates) == 1, "Errore, piu templates per una stessa chiamata"
+            template, context = templates[0]
+            print("Response.location: " + str(response.location))
+            self.assertEqual(response.status_code, 200, "Redirezione di homepage(sloggato) non e andata a buon fine")
+            self.assertEqual(template.name, "setup.html", "Errore, redirezione su una pagina diversa da setup")
 
     def test_a2_search(self):
 
@@ -57,8 +61,12 @@ class HomePageTests(unittest.TestCase):
                          "Errore, non si e stati reindirizzati correttamente")
 
         # Verifico che la redirezione vada a buon fine
-        response = self.app.get('/search', follow_redirects=True)
-        self.assertEqual(response.status_code, 200, "Redirezione di homepage(sloggato) non e andata a buon fine")
+        with self.captured_templates() as templates:
+            response = self.app.get('/search', follow_redirects=True)
+            assert len(templates) == 1, "Errore, piu templates per una stessa chiamata"
+            template, context = templates[0]
+            self.assertEqual(response.status_code, 200, "Redirezione di homepage(sloggato) non e andata a buon fine")
+            self.assertEqual(template.name, "setup.html", "Errore, redirezione su una pagina diversa da setup")
 
     def test_a3_upload(self):
         print("\n- Test Upload")
@@ -68,8 +76,12 @@ class HomePageTests(unittest.TestCase):
                          "Errore, non si e stati reindirizzati correttamente")
 
         # Verifico che la redirezione vada a buon fine
-        response = self.app.get('/upload', follow_redirects=True)
-        self.assertEqual(response.status_code, 200, "Redirezione di homepage(sloggato) non e andata a buon fine")
+        with self.captured_templates() as templates:
+            response = self.app.get('/upload', follow_redirects=True)
+            assert len(templates) == 1, "Errore, piu templates per una stessa chiamata"
+            template, context = templates[0]
+            self.assertEqual(response.status_code, 200, "Redirezione di homepage(sloggato) non e andata a buon fine")
+            self.assertEqual(template.name, "setup.html", "Errore, redirezione su una pagina diversa da setup")
 
     def test_a4_logout(self):
         print("\n- Test LogOut")
