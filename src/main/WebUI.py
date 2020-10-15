@@ -236,9 +236,15 @@ def logout():
     data = recvUntil(s, "%").decode('utf-8')
 
     if data == "OK":
+<<<<<<< HEAD
         return redirect("/setup")
     else:
         return
+=======
+        return render_template('logout.html', result="ok")
+    else:
+        return render_template('logout.html', result="ko")
+>>>>>>> c0c6202e0138c992237960e2d80116d529ed023e
 
 
 @app.route("/download")

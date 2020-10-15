@@ -19,19 +19,13 @@
 {% endblock %}
 
 {% block content %}
-<script>
-    var url = new URL(window.location.href);
-    var code = url.searchParams.get("code");
-    var scritta = document.createElement('div');
-    if (code == "ERR") {
-        scritta.innerHTML = "<H1>Errore di login all'interno del tracker.</H1>";
-    }
-    if (code == "0000000000000000") {
-        scritta.innerHTML = "<H1>Il tracker ha restituito un sid con tutti zeri.</H1>";
-    }
-    document.body.appendChild(scritta);
-</script>
+    {% if code == "ERR" %}
+        <p>Errore di login all'interno del tracker</p>
+    {% endif %}
 
-<a class="btn btn-primary" href="/setup" role="button">Torna ai parametri</a>
+    {% if code == "0000000000000000" %}
+        <p>Errore di login all'interno del tracker</p>
+    {% endif %}
 
+    <a class="btn btn-primary" href="/setup" role="button">Torna ai parametri</a>
 {% endblock %}

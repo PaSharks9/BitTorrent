@@ -1,0 +1,17 @@
+{% extends "interfaceHomepage.html" %}
+
+{% block content %}
+<div style="text-align: center; margin-top: 150px;">
+
+    {% if result == "ok" %}
+        <p>Logout eseguito con successo!</p>
+        <a class="btn btn-primary" href="/setup" role="button">Vai ai parametri</a>
+    {% endif %}
+
+    {% if result == "ko" %}
+        <p>Il tracker ha negato il logout!</p>
+        <a class="btn btn-primary" href="/home" role="button">Vai alla homepage</a>
+    {% endif %}
+
+</div>
+{% endblock %}
