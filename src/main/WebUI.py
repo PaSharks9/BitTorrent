@@ -50,8 +50,8 @@ def homepage():
             else:
                 dataLists.append(fileInfo)
         # print(dataLists)
-        print("sid: " + str(sid))
-        print("dati: " + str(dataLists))
+        print("\tsid: " + str(sid))
+        print("\tdati: " + str(dataLists))
     return render_template('home.html', data=dataLists, sid=sid)
 
 
@@ -169,7 +169,7 @@ def search():
         s.sendall(searchKey.encode('utf-8'))
         temp = recvUntil(s, "%").decode('utf-8')
         risultati = temp.split(',')  # da formato CSV restituisce una lista
-        print("risultati: " + str(risultati))
+        print("\t\t\trisultati: " + str(risultati) + "\n")
         res = []
         part = []
         i = 0

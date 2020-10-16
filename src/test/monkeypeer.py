@@ -59,9 +59,11 @@ class webTalker(threading.Thread):
         self.webConnection = webConnection
         self.logged = False
         self.sid = "0000000000000000"
-        self.error = random.choice(['0000000000000000', 'ERR'])
-        self.shared_file = False
 
+        # Flag per testare comportamenti in caso si ricevano codici di errore dal login
+        self.error = random.choice(['0000000000000000', 'ERR'])
+        self.shared_file = False   # Flag per poter testare la logout quando si sta condividendo un file
+        self.fas = True   # Flag per poter testare cosa succede quando si vuole aggiungere un file che già si condivide
 
     def run(self):
         while self.killed is False:
@@ -148,8 +150,13 @@ class webTalker(threading.Thread):
                 if data is not None:
                     self.shared_file = True
 
+                if self.fas:
+                    self.fas = False
+                    data = 'FAS'
+                else:
+                    data = "e11f7b6e50eb65e311a591a244210c69,100"
+
                 print("[MONKEY-PEER] Data ricevuti: " + data)
-                data = "e11f7b6e50eb65e311a591a244210c69,100"
 
             elif data == "LOGI":
                 if self.error in ['0000000000000000', 'ERR']:

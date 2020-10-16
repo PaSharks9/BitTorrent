@@ -32,6 +32,7 @@ class HomePageTests(unittest.TestCase):
 
     # ############################# TEST DA SLOGGATI ###########################################
     def test_a1_homepage(self):
+        print("----- FILE: unit_slogged_tests.py -----")
         print("TEST DA SLOGGATI")
         print("\n- Test Homepage")
 
@@ -128,7 +129,6 @@ class HomePageTests(unittest.TestCase):
             response = self.app.post('/setup', data=payload, follow_redirects=True)
             self.assertEqual(response.status_code, 200, "Error code di post su setup, codice ricevuto: "
                              + str(response.status_code) + " invece di 200")
-            print("N. templates: " + str(len(templates)))
             assert len(templates) == 1, "Errore, piu templates per una stessa chiamata"
             template, context = templates[0]
             self.assertEqual(template.name, 'error.html', 'Errore di redirezione su pagina diversa da error')
@@ -189,7 +189,7 @@ class HomePageTests(unittest.TestCase):
         print("\n TEST DA LOGGATI")
         # Se eseguo una post su setup da loggati e da interpretare come una logout,
         # verifico che il reindirizzamento sia corretto
-        print("\n\t-[Test di Setup]4 Verifico la logout da setup")
+        print("\n\t[Test di Setup]4- Verifico la logout da setup\n\n")
         response = self.app.post('/setup', data=payload2, follow_redirects=False)
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.location, 'http://localhost/logout')
