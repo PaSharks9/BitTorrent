@@ -5,6 +5,7 @@
 import os
 import socket
 import threading
+import random
 
 # ########################################### Utilities ############################################
 script_dir = os.path.dirname(__file__)  # E' il path dove si trova questo script
@@ -57,7 +58,10 @@ class webTalker(threading.Thread):
         self.killed = False
         self.webConnection = webConnection
         self.logged = False
-        self.sid = ""
+        self.sid = "0000000000000000"
+        self.error = random.choice(['0000000000000000', 'ERR'])
+        self.shared_file = False
+
 
     def run(self):
         while self.killed is False:
@@ -141,23 +145,31 @@ class webTalker(threading.Thread):
                     print("Error: " + str(e))
                     self.killed = True
 
+                if data is not None:
+                    self.shared_file = True
+
                 print("[MONKEY-PEER] Data ricevuti: " + data)
                 data = "e11f7b6e50eb65e311a591a244210c69,100"
 
             elif data == "LOGI":
-
-                self.sid = "0123456789123456"
-                if self.sid != "0000000000000000" and self.sid != "":
+                if self.error in ['0000000000000000', 'ERR']:
+                    data = self.error
+                    self.error = None
+                    self.sid = "0123456789123456"
+                elif self.sid != "0000000000000000" and self.sid != "":
                     self.logged = True
                     data = str(self.sid)
                 else:
                     data = "ERR"
 
             elif data == "LOGO":
-                if self.logged:
+                if self.logged and self.shared_file is False:
                     data = "OK"
-                else:
+                elif self.logged and self.shared_file is True:
+                    self.shared_file = False
                     data = "false"
+                else:
+                    data = 'false'
 
             elif data == "DOWN":
                 try:

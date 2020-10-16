@@ -113,7 +113,28 @@ class HomePageTests(unittest.TestCase):
             self.assertEqual(template.name, "setup.html", "Errore, redirezione su una pagina diversa da setup")
             self.assertEqual(context['ipv4peer'], "127.0.0.1")
 
-    def test_a6_setup(self):
+    def test_a6_sid_error(self):
+        print("\n- Test Sid Error")
+        payload = {'peer_ipv4': "127.0.0.1",
+                   'peer_ipv6': "::1",
+                   'peer_port': "5000",
+                   'tracker_ipv4': "127.0.0.1",
+                   'tracker_ipv6': "::1",
+                   'tracker_port': "3000",
+                   'msg': "y"
+                   }
+        # Controllo che la redirezione funzioni
+        with self.captured_templates() as templates:
+            response = self.app.post('/setup', data=payload, follow_redirects=True)
+            self.assertEqual(response.status_code, 200, "Error code di post su setup, codice ricevuto: "
+                             + str(response.status_code) + " invece di 200")
+            print("N. templates: " + str(len(templates)))
+            assert len(templates) == 1, "Errore, piu templates per una stessa chiamata"
+            template, context = templates[0]
+            self.assertEqual(template.name, 'error.html', 'Errore di redirezione su pagina diversa da error')
+            assert context['code'] in ['0000000000000000', 'ERR']
+
+    def test_a7_setup(self):
         payload = {'peer_ipv4': "127.0.0",
                    'peer_ipv6': "::1",
                    'peer_port': "5000abc",

@@ -181,6 +181,7 @@ class HomePageTests(unittest.TestCase):
         print("\n- Test get Homepage")
         with self.captured_templates() as templates:
             response = self.app.get('/', follow_redirects=False)
+            print("templates: " + str(templates))
             assert len(templates) == 1, "Errore, piu templates per una stessa chiamata"
             template, context = templates[0]
             self.assertEqual(200, response.status_code, "Wrong status code received ")
@@ -238,15 +239,29 @@ class HomePageTests(unittest.TestCase):
             self.assertEqual(context['load'], 'y', "Errore nel messaggio di caricamento")
 
     def test_b4_logout(self):
-        print("\n- Test di Logout")
-        response = self.app.get('/logout', follow_redirects=False)
-        self.assertEqual(response.status_code, 302, "Errore, mancata ridirezione a Setup")
-        self.assertEqual(response.location, 'http://localhost/setup',
-                         "Errore, non si e stati reindirizzati  correttamente")
+        print("\n - Test Logout")
 
-        response = self.app.get('/logout', follow_redirects=True)
-        self.assertEqual(response.status_code, 200, "Redirezione di logout non e andata a buon fine")
+        with self.captured_templates() as templates:
+            print("\n Caso in cui si stia condividendo un file, non si può sloggare")
+            response = self.app.get('/logout')
+            assert len(templates) == 1, "Errore, piu templates per una stessa chiamata"
+            template, context = templates[0]
+            self.assertEqual(response.status_code, 200, "Errore, mancata visualizzazione di logout.html")
+            self.assertEqual(template.name, 'logout.html', 'Errore, visualizzata pagina diversa da logout.html')
+            self.assertEqual(context['result'], "ko")
 
+            print("\n Caso in cui l'utente è loggato e non condivide alcun file, logout va a buon fine")
+            
+            response = self.app.get('/logout')
+            assert len(templates) == 2, "Errore, piu di 2 templates per una stessa chiamata"
+            template, context = templates[1]
+            self.assertEqual(response.status_code, 200, "Errore, mancata visualizzazione di logout.html")
+            response = self.app.get('/logout', follow_redirects=True)
+            self.assertEqual(response.status_code, 200, "Redirezione di logout non e andata a buon fine")
+            self.assertEqual(template.name, 'logout.html', 'Errore, visualizzata pagina diversa da logout.html')
+            print("result: " + context['result'])
+            self.assertEqual(context['result'], "ok")
 
+  
 if __name__ == "__main__":
     unittest.main()
