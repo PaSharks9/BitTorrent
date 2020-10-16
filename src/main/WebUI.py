@@ -202,7 +202,7 @@ def upload():
         nome = f.filename
 
         if nome == '':
-            return render_template('upload.html', message='Prego selezionare un file esistente!')
+            return render_template('upload.html', load="y", message='Prego selezionare un file esistente!')
         else:
             f.save(os.path.join(app.config['UPLOAD_FOLDER'], nome))
             data = "UPLD" + os.path.join(app.config['UPLOAD_FOLDER'], nome) + ',' + str(
@@ -215,15 +215,17 @@ def upload():
                 data = "Si e' verificato un errore durante il caricamento (tra peer e tracker).</br>Si prega di " \
                        "riprovare... "
             elif data == "FNF":
-                return render_template('upload.html', message='Impossibile aprire il file!')
+                return render_template('upload.html', load="y", error=True, message='Impossibile aprire il file!')
             elif data == "FAS":
-                return render_template('upload.html', message='Si sta gia condividendo il file selezionato!')
+                return render_template('upload.html', load="y", error=True,
+                                       message='Si sta gia condividendo il file selezionato!')
             elif data == "FTB":
-                return render_template('upload.html',
+                return render_template('upload.html', load="y", error=True,
                                        message="La dimesione in byte del file dev'essere di massimo 10 cifre!")
             else:
                 lista = data.split(',')
-                return render_template('upload.html', md5=lista[0], dim=lista[1], load="y")
+                return render_template('upload.html', md5=lista[0], dim=lista[1], load="y",
+                                       message="File caricato correttamente")
 
 
 @app.route("/logout")
