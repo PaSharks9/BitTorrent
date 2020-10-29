@@ -757,7 +757,7 @@ def updateSending(inc):
     return
 
 def loadConfiguration(): 
-    rel_path = "peerConfiguration.csv"
+    rel_path = "peerConfigurationOld.csv"
     config_file = os.path.join(script_dir, rel_path)
 
     try:
